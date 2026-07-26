@@ -4,7 +4,7 @@
 OpenCoreX is a long-term hardware engineering portfolio project focused on modern CPU architecture, RTL design, computer architecture, verification FPGA development, ASIC concepts, and AI hardware acceleration.
 
 ## Initial Milestone
-The first milestone will be the design and verification of a RISC-V processor in SystemVerilog while emphasizing methodology rather than simply producing a working CPU. 
+The first milestone will be the design and verification of a RISC-V processor in SystemVerilog while emphasizing methodology rather than simply producing a working CPU. It will be a 32 bit RISC-V multicycle CPU. The goal is to have this stage done by September 1st at the latest.
 
 ## Current Status
 The project is currently in the architecture-planning and development-environment setup phase. No RTL has been implemented yet.

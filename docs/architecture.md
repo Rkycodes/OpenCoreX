@@ -1,6 +1,6 @@
-##Supported Instructions
+## Supported Instructions
 
-OpenCoreX v0.1 implements te following 10 instruction subset of RV32I:
+OpenCoreX v0.1 implements the following 10 instruction subset of RV32I:
 
 ### Register-Register Arithmetic and Logic (R type)
 
@@ -341,7 +341,7 @@ Comparison cycle:
 
     if Zero:
         PC ← ALUOut
-
+```
 `ALUOutWrite` remains disabled during the comparison cycle so that `A - B` does not overwrite the saved branch target.
 
 Similarly, during the `JAL` completion state, `ALUOutWrite` remains disabled while the saved jump target is used to update the `PC`.
@@ -365,15 +365,15 @@ This separates control responsibilities:
 
 ### R-Type ALU Decoding
 
-When `ALUOp = FUNC`, the ALU decoder examines `funct3` and, when necessary, `funct7[5]`, which is stored in `IR[30]`.
+When `ALUOp = FUNC`, the ALU decoder examines the complete `funct3` and `funct7` fields.
 
-| `funct3` | `funct7[5]` | Operation |
-|---|---:|---|
-| `000` | `0` | `ADD` |
-| `000` | `1` | `SUB` |
-| `100` | Ignored | `XOR` |
-| `110` | Ignored | `OR` |
-| `111` | Ignored | `AND` |
+| `funct3` | `funct7` | Operation |
+|---|---|---|
+| `000` | `0000000` | `ADD` |
+| `000` | `0100000` | `SUB` |
+| `100` | `0000000` | `XOR` |
+| `110` | `0000000` | `OR` |
+| `111` | `0000000` | `AND` |
 
 The FSM can directly request addition or subtraction through `ALUOp` without using the R-type function fields. For example:
 
@@ -494,21 +494,79 @@ The `ERROR` state is sticky. Once entered, the processor remains in `ERROR` unti
 
 ### Control-Signal Table
 
-A dash indicates that the signal’s selected value does not affect the state’s required behavior. RTL must still assign a defined safe default rather than `X`.
+A dash indicates that the selected value does not affect the required behavior in that state. Future RTL must still assign every signal a defined safe default rather than `X`.
 
-| State | `PCWrite` | `IRWrite` | `OldPCWrite` | `PCPlus4Write` | `AWrite` | `BWrite` | `ALUOutWrite` | `MDRWrite` | `RegWrite` | `MemWrite` | `ALUSrcA` | `ALUSrcB` | `ALUOp` | `PCSource` | `WriteBackSelect` |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|---|---|---|
-| `FETCH` | `1` | `1` | `1` | `1` | `0` | `0` | `0` | `0` | `0` | `0` | `PC` | `4` | `ADD` | `ALUResult` | — |
-| `DECODE` | `0` | `0` | `0` | `0` | `Legal` | `Legal` | `0` | `0` | `0` | `0` | — | — | — | — | — |
-| `R_EXEC` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `A` | `B` | `FUNC` | — | — |
-| `I_EXEC` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `A` | `Immediate` | `ADD` | — | — |
-| `ALU_WRITEBACK` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | — | — | — | — | `ALUOut` |
-| `MEM_ADDR` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `A` | `Immediate` | `ADD` | — | — |
-| `MEM_READ` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | — | — | — | — | — |
-| `MEM_WRITEBACK` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | — | — | — | — | `MDR` |
-| `MEM_WRITE` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | — | — | — | — | — |
-| `BRANCH_TARGET` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `OldPC` | `Immediate` | `ADD` | — | — |
-| `BRANCH_COMPARE` | `Zero` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `A` | `B` | `SUB` | `ALUOut` | — |
-| `JUMP_TARGET` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `OldPC` | `Immediate` | `ADD` | — | — |
-| `JUMP_COMPLETE` | `1` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | — | — | — | `ALUOut` | `PCPlus4` |
-| `ERROR` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | — | — | — | — | — |
+`Legal` means that the instruction in `IR` has one of the exact supported opcode, `funct3`, and—where required—`funct7` combinations.
+
+`MemAddrSource` controls the unified-memory address multiplexer:
+
+- `PC` selects the instruction address.
+- `ALUOut` selects the effective data-memory address.
+
+| State | `PCWrite` | `PCWriteCond` | `IRWrite` | `OldPCWrite` | `PCPlus4Write` | `AWrite` | `BWrite` | `ALUOutWrite` | `MDRWrite` | `RegWrite` | `MemWrite` | `error` | `MemAddrSource` | `ALUSrcA` | `ALUSrcB` | `ALUOp` | `PCSource` | `WriteBackSelect` |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|---|---|---|---|
+| `FETCH` | `1` | `0` | `1` | `1` | `1` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `PC` | `PC` | `4` | `ADD` | `ALUResult` | — |
+| `DECODE` | `0` | `0` | `0` | `0` | `0` | `Legal` | `Legal` | `0` | `0` | `0` | `0` | `0` | — | — | — | — | — | — |
+| `R_EXEC` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | — | `A` | `B` | `FUNC` | — | — |
+| `I_EXEC` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | — | `A` | `Immediate` | `ADD` | — | — |
+| `ALU_WRITEBACK` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | — | — | — | — | — | `ALUOut` |
+| `MEM_ADDR` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | — | `A` | `Immediate` | `ADD` | — | — |
+| `MEM_READ` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `ALUOut` | — | — | — | — | — |
+| `MEM_WRITEBACK` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | — | — | — | — | — | `MDR` |
+| `MEM_WRITE` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `ALUOut` | — | — | — | — | — |
+| `BRANCH_TARGET` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | — | `OldPC` | `Immediate` | `ADD` | — | — |
+| `BRANCH_COMPARE` | `0` | `1` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | — | `A` | `B` | `SUB` | `ALUOut` | — |
+| `JUMP_TARGET` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | — | `OldPC` | `Immediate` | `ADD` | — | — |
+| `JUMP_COMPLETE` | `1` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | — | — | — | — | `ALUOut` | `PCPlus4` |
+| `ERROR` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | — | — | — | — | — | — |
+
+The final program-counter enable is:
+
+`PCEnable = PCWrite | (PCWriteCond & Zero)`
+
+Therefore:
+
+- `FETCH` updates the `PC` unconditionally from `ALUResult`.
+- `BRANCH_COMPARE` updates the `PC` from `ALUOut` only when `Zero = 1`.
+- `JUMP_COMPLETE` updates the `PC` unconditionally from `ALUOut`.
+
+### FSM State-Transition Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> FETCH: Reset or startup
+
+    FETCH --> DECODE: Instruction captured
+
+    DECODE --> R_EXEC: Legal R-type
+    DECODE --> I_EXEC: Legal ADDI
+    DECODE --> MEM_ADDR: Legal LW or SW
+    DECODE --> BRANCH_TARGET: Legal BEQ
+    DECODE --> JUMP_TARGET: Legal JAL
+    DECODE --> ERROR: Illegal encoding
+
+    R_EXEC --> ALU_WRITEBACK
+    I_EXEC --> ALU_WRITEBACK
+    ALU_WRITEBACK --> FETCH
+
+    MEM_ADDR --> MEM_READ: LW
+    MEM_ADDR --> MEM_WRITE: SW
+    MEM_READ --> MEM_WRITEBACK
+    MEM_WRITEBACK --> FETCH
+    MEM_WRITE --> FETCH
+
+    BRANCH_TARGET --> BRANCH_COMPARE
+    BRANCH_COMPARE --> FETCH: Taken or not taken
+
+    JUMP_TARGET --> JUMP_COMPLETE
+    JUMP_COMPLETE --> FETCH
+
+    ERROR --> ERROR: Reset not asserted
+    ERROR --> FETCH: Reset asserted
+
+    note right of FETCH
+        Reset from any state
+        returns the FSM to FETCH
+    end note
+```
+

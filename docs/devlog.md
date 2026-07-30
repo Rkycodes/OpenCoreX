@@ -48,3 +48,4 @@
 - Documented the encodings in `architecture.md`.
 - Created the project roadmap.
 - audited FSM control outputs state by state before writing RTL.
+- created this here devlog document!

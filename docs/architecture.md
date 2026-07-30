@@ -494,31 +494,63 @@ The `ERROR` state is sticky. Once entered, the processor remains in `ERROR` unti
 
 ### Control-Signal Table
 
-A dash indicates that the selected value does not affect the required behavior in that state. Future RTL must still assign every signal a defined safe default rather than `X`.
+All control outputs receive explicit values in every state. When a multiplexer output is unused, the controller assigns its defined safe-default encoding rather than an unknown or don't-care value.
 
-`Legal` means that the instruction in `IR` has one of the exact supported opcode, `funct3`, and—where required—`funct7` combinations.
+`Legal` means the instruction in `IR` matches one of the exact supported opcode, `funct3`, and, where required, `funct7` combinations. Therefore, during `DECODE`:
 
-`MemAddrSource` controls the unified-memory address multiplexer:
+- Legal instruction: `AWrite = 1` and `BWrite = 1`
+- Illegal instruction: `AWrite = 0` and `BWrite = 0`
 
-- `PC` selects the instruction address.
-- `ALUOut` selects the effective data-memory address.
+#### Multiplexer Encodings
+
+| Control | `00` / `0` | `01` / `1` | `10` | `11` |
+|---|---|---|---|---|
+| `MemAddrSource` | `PC` | `ALUOut` | Reserved | Reserved |
+| `ALUSrcA` | `PC` | `OldPC` | `A` | Reserved |
+| `ALUSrcB` | `B` | Constant `4` | Immediate | Reserved |
+| `PCSource` | `ALUResult` | `ALUOut` | Reserved | Reserved |
+| `WriteBackSelect` | `ALUOut` | `MDR` | `PCPlus4` | Reserved |
+
+`MemAddrSource` is a one-bit control. The other selector encodings are shown using their defined two-bit values.
+
+#### ALU Operation Encodings
+
+| `ALUOp` | Operation category |
+|---|---|
+| `00` | `ADD` |
+| `01` | `SUB` |
+| `10` | `FUNC` |
+| `11` | Reserved |
+
+#### Safe Default Selector Values
+
+Unless a state requires another value, the controller uses:
+
+- `MemAddrSource = 0`
+- `ALUSrcA = 00`
+- `ALUSrcB = 00`
+- `ALUOp = 00`
+- `PCSource = 00`
+- `WriteBackSelect = 00`
+
+#### Encoded State Outputs
 
 | State | `PCWrite` | `PCWriteCond` | `IRWrite` | `OldPCWrite` | `PCPlus4Write` | `AWrite` | `BWrite` | `ALUOutWrite` | `MDRWrite` | `RegWrite` | `MemWrite` | `error` | `MemAddrSource` | `ALUSrcA` | `ALUSrcB` | `ALUOp` | `PCSource` | `WriteBackSelect` |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|---|---|---|---|
-| `FETCH` | `1` | `0` | `1` | `1` | `1` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `PC` | `PC` | `4` | `ADD` | `ALUResult` | — |
-| `DECODE` | `0` | `0` | `0` | `0` | `0` | `Legal` | `Legal` | `0` | `0` | `0` | `0` | `0` | — | — | — | — | — | — |
-| `R_EXEC` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | — | `A` | `B` | `FUNC` | — | — |
-| `I_EXEC` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | — | `A` | `Immediate` | `ADD` | — | — |
-| `ALU_WRITEBACK` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | — | — | — | — | — | `ALUOut` |
-| `MEM_ADDR` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | — | `A` | `Immediate` | `ADD` | — | — |
-| `MEM_READ` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `ALUOut` | — | — | — | — | — |
-| `MEM_WRITEBACK` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | — | — | — | — | — | `MDR` |
-| `MEM_WRITE` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `ALUOut` | — | — | — | — | — |
-| `BRANCH_TARGET` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | — | `OldPC` | `Immediate` | `ADD` | — | — |
-| `BRANCH_COMPARE` | `0` | `1` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | — | `A` | `B` | `SUB` | `ALUOut` | — |
-| `JUMP_TARGET` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | — | `OldPC` | `Immediate` | `ADD` | — | — |
-| `JUMP_COMPLETE` | `1` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | — | — | — | — | `ALUOut` | `PCPlus4` |
-| `ERROR` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | — | — | — | — | — | — |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `FETCH` | `1` | `0` | `1` | `1` | `1` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `00` | `01` | `00` | `00` | `00` |
+| `DECODE` | `0` | `0` | `0` | `0` | `0` | `Legal` | `Legal` | `0` | `0` | `0` | `0` | `0` | `0` | `00` | `00` | `00` | `00` | `00` |
+| `R_EXEC` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | `0` | `10` | `00` | `10` | `00` | `00` |
+| `I_EXEC` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | `0` | `10` | `10` | `00` | `00` | `00` |
+| `ALU_WRITEBACK` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `00` | `00` | `00` | `00` | `00` |
+| `MEM_ADDR` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | `0` | `10` | `10` | `00` | `00` | `00` |
+| `MEM_READ` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `1` | `00` | `00` | `00` | `00` | `00` |
+| `MEM_WRITEBACK` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `00` | `00` | `00` | `00` | `01` |
+| `MEM_WRITE` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `1` | `00` | `00` | `00` | `00` | `00` |
+| `BRANCH_TARGET` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | `0` | `01` | `10` | `00` | `00` | `00` |
+| `BRANCH_COMPARE` | `0` | `1` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `10` | `00` | `01` | `01` | `00` |
+| `JUMP_TARGET` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `0` | `0` | `01` | `10` | `00` | `00` | `00` |
+| `JUMP_COMPLETE` | `1` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `0` | `0` | `00` | `00` | `00` | `01` | `10` |
+| `ERROR` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `0` | `1` | `0` | `00` | `00` | `00` | `00` | `00` |
 
 The final program-counter enable is:
 
@@ -526,9 +558,9 @@ The final program-counter enable is:
 
 Therefore:
 
-- `FETCH` updates the `PC` unconditionally from `ALUResult`.
+- `FETCH` unconditionally updates the `PC` from `ALUResult`.
 - `BRANCH_COMPARE` updates the `PC` from `ALUOut` only when `Zero = 1`.
-- `JUMP_COMPLETE` updates the `PC` unconditionally from `ALUOut`.
+- `JUMP_COMPLETE` unconditionally updates the `PC` from `ALUOut`.
 
 ### FSM State-Transition Diagram
 

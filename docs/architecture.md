@@ -570,3 +570,61 @@ stateDiagram-v2
     end note
 ```
 
+### Datapath Multiplexer Encodings
+
+The controller uses the following fixed encodings for the datapath multiplexer select signals. Reserved selections must still produce a defined output to prevent unknown values from propagating through the datapath.
+
+#### `ALUSrcA[1:0]`
+
+`ALUSrcA` selects the first 32-bit ALU operand.
+
+| `ALUSrcA` | Selected source |
+|---|---|
+| `2'b00` | `PC` |
+| `2'b01` | `OldPC` |
+| `2'b10` | `A` |
+| `2'b11` | Reserved; safely select `PC` |
+
+#### `ALUSrcB[1:0]`
+
+`ALUSrcB` selects the second 32-bit ALU operand.
+
+| `ALUSrcB` | Selected source |
+|---|---|
+| `2'b00` | `B` |
+| `2'b01` | Constant `32'd4` |
+| `2'b10` | Sign-extended immediate |
+| `2'b11` | Reserved; safely select `B` |
+
+#### `WriteBackSelect[1:0]`
+
+`WriteBackSelect` selects the 32-bit value written into the Register File when `RegWrite = 1`.
+
+| `WriteBackSelect` | Selected source |
+|---|---|
+| `2'b00` | `ALUOut` |
+| `2'b01` | `MDR` |
+| `2'b10` | `PCPlus4` |
+| `2'b11` | Reserved; safely select `ALUOut` |
+
+#### `PCSource`
+
+`PCSource` selects the next program-counter value.
+
+| `PCSource` | Selected source |
+|---|---|
+| `1'b0` | `ALUResult` |
+| `1'b1` | `ALUOut` |
+
+`ALUResult` supplies `PC + 4` during `FETCH`. `ALUOut` supplies the previously saved branch or jump target during `BRANCH_COMPARE` and `JUMP_COMPLETE`.
+
+#### `MemAddrSource`
+
+`MemAddrSource` selects the address presented to Unified Memory.
+
+| `MemAddrSource` | Selected source |
+|---|---|
+| `1'b0` | `PC` |
+| `1'b1` | `ALUOut` |
+
+`PC` supplies the instruction address during `FETCH`. `ALUOut` supplies the effective data-memory address during `MEM_READ` and `MEM_WRITE`.

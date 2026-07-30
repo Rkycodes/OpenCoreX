@@ -47,4 +47,4 @@
 - Finalized all five datapath MUX-select encodings.
 - Documented the encodings in `architecture.md`.
 - Created the project roadmap.
-- Established the next task: audit FSM control outputs state by state before writing RTL.
+- audited FSM control outputs state by state before writing RTL.

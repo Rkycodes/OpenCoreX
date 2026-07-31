@@ -383,9 +383,16 @@ The FSM can directly request addition or subtraction through `ALUOp` without usi
 
 ### Unsupported Encodings
 
-Unsupported `ALUOp`, `funct3`, or `funct7` combinations assert `IllegalInstruction`.
+When `ALUOp = FUNC`, the ALU decoder produces `ALUControl` from the complete `funct3` and `funct7` fields. Unsupported combinations produce a safe default `ALUControl` value.
 
-The combinational ALU logic still assigns a safe default value to `ALUControl` and `ALUResult` to prevent undefined behavior. However, the controller prevents the result from changing processor state and transitions the FSM into the sticky `ERROR` state described in the following section.
+The controller is the sole owner of architectural instruction legality. It validates the complete instruction encoding during `DECODE` and routes any unsupported instruction directly to `ERROR` before execution.
+
+The ALU decoder may also produce an internal `ALUDecodeValid` signal for
+simulation assertions and waveform debugging. This signal does not control the FSM or cause architectural state transitions.
+
+During verification:
+
+`R_EXEC` implies `ALUDecodeValid = 1`
 
 ## Reset and Error Behavior
 

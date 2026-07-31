@@ -49,3 +49,10 @@
 - Created the project roadmap.
 - audited FSM control outputs state by state before writing RTL.
 - created this here devlog document!
+
+## 2026-07-30
+- Finalized FSM Control 
+- Audited `architecture.md` for mistakes and conflicts and resolved them.
+- begin RTL Module boundaries.
+- Decided that OpenCoreX v0.1 is changing to be synchronous, one cycle latency memory interface now so that FPGA integration is more seamless, avoids restructuring `FETCH` and load timing.
+- 

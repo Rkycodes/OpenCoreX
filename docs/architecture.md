@@ -254,8 +254,6 @@ Examples include:
 
 ### Memory Data Register (`MDR`)
 
-### Memory Data Register (`MDR`)
-
 During `MEM_READ`, the processor requests the word located at the effective address stored in `ALUOut`.
 
 During the following `MEM_READ_CAPTURE` state, the `MDR` captures the returned word:
@@ -503,8 +501,6 @@ The FSM remains in `ERROR`, preventing an unsupported instruction from modifying
 
 ### State-Transition Table
 
-### State-Transition Table
-
 OpenCoreX v0.1 uses 16 FSM states. Instruction legality is checked during `DECODE` before an instruction enters an execution state. Synchronous memory reads use separate request and capture states.
 
 | Current State | Condition | Next State |
@@ -583,10 +579,10 @@ All control outputs receive explicit values in every state. When a multiplexer o
 | `MemAddrSource` | `PC` | `ALUOut` | Reserved | Reserved |
 | `ALUSrcA` | `PC` | `OldPC` | `A` | Reserved |
 | `ALUSrcB` | `B` | Constant `4` | Immediate | Reserved |
-| `PCSource` | `ALUResult` | `ALUOut` | Reserved | Reserved |
+| `PCSource` | `ALUResult` | `ALUOut` | N/A | N/A |
 | `WriteBackSelect` | `ALUOut` | `MDR` | `PCPlus4` | Reserved |
 
-`MemAddrSource` is a one-bit control. The other selector encodings are shown using their defined two-bit values.
+`MemAddrSource` and `PCSource` are one-bit selectors. `ALUSrcA`, `ALUSrcB`, and `WriteBackSelect` are two-bit selectors.
 
 #### ALU Operation Encodings
 
@@ -605,7 +601,7 @@ Unless a state requires another value, the controller uses:
 - `ALUSrcA = 00`
 - `ALUSrcB = 00`
 - `ALUOp = 00`
-- `PCSource = 00`
+- `PCSource = 0`
 - `WriteBackSelect = 00`
 
 #### Encoded State Outputs
@@ -638,7 +634,6 @@ Therefore:
 - `BRANCH_COMPARE` updates the `PC` from `ALUOut` only when `Zero = 1`.
 - `JUMP_COMPLETE` unconditionally updates the `PC` from `ALUOut`.
 
-### FSM State-Transition Diagram
 ### FSM State-Transition Diagram
 
 ```mermaid
@@ -703,6 +698,33 @@ The controller uses the following fixed encodings for the datapath multiplexer s
 | `1'b1` | `ALUOut` |
 
 `PC` supplies the instruction address during `FETCH`. `ALUOut` supplies the effective data-memory address during `MEM_READ` and `MEM_WRITE`.
+
+### Reserved and Default Behavior
+
+All combinational RTL blocks must assign defined outputs for every possible input combination.
+
+#### Datapath Multiplexers
+
+A reserved multiplexer encoding selects `32'b0`.
+
+This rule applies to:
+
+- `ALUSrcA = 2'b11`
+- `ALUSrcB = 2'b11`
+- `WriteBackSelect = 2'b11`
+
+`MemAddrSource` and `PCSource` are one-bit selectors, so both of their possible encodings are defined and neither has a reserved encoding.
+
+Reserved multiplexer selections must never be used during legal instruction execution.
+
+#### ALU Decoder
+
+If `ALUOp`, `funct3`, and `funct7` do not identify a supported ALU operation, the ALU decoder produces:
+
+```text
+ALUControl    = 3'b000
+ALUDecodeValid = 1'b0
+```
 
 ## RTL Module Interfaces
 
@@ -872,16 +894,30 @@ A required integration-level verification property is:
 
 `R_EXEC` implies `ALUDecodeValid = 1`
 
-### `immediate_generator`
+### Immediate Generator Encodings
 
-| Port | Direction | Width |
-|---|---|---:|
-| `instruction` | Input | 32 |
-| `immediate` | Output | 32 |
+The immediate generator extracts and sign-extends the immediate from the instruction stored in `IR`.
 
-The immediate generator is combinational. It examines the instruction opcode, selects the required I-, S-, B-, or J-type immediate format, and sign-extends the result to 32 bits.
+| Instruction format | Supported instructions | 32-bit immediate construction |
+|---|---|---|
+| I-type | `ADDI`, `LW` | `{{20{IR[31]}}, IR[31:20]}` |
+| S-type | `SW` | `{{20{IR[31]}}, IR[31:25], IR[11:7]}` |
+| B-type | `BEQ` | `{{19{IR[31]}}, IR[31], IR[7], IR[30:25], IR[11:8], 1'b0}` |
+| J-type | `JAL` | `{{11{IR[31]}}, IR[31], IR[19:12], IR[20], IR[30:21], 1'b0}` |
 
-The generated immediate remains an internal datapath signal.
+The B-type and J-type immediates end in `1'b0` because their encoded offsets are multiples of two bytes. This appended bit is part of reconstructing the immediate; the processor does not shift the completed immediate again.
+
+The instruction opcode selects the format:
+
+| Opcode | Instruction | Immediate format |
+|---|---|---|
+| `0010011` | `ADDI` | I-type |
+| `0000011` | `LW` | I-type |
+| `0100011` | `SW` | S-type |
+| `1100011` | `BEQ` | B-type |
+| `1101111` | `JAL` | J-type |
+
+For an opcode that does not use a supported immediate format, the immediate generator outputs `32'b0`. Instruction legality remains the controller's responsibility.
 
 ### `register_file`
 

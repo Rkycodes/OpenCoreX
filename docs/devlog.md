@@ -54,5 +54,12 @@
 - Finalized FSM Control 
 - Audited `architecture.md` for mistakes and conflicts and resolved them.
 - begin RTL Module boundaries.
-- Decided that OpenCoreX v0.1 is changing to be synchronous, one cycle latency memory interface now so that FPGA integration is more seamless, avoids restructuring `FETCH` and load timing.
-- 
+- Decided that OpenCoreX v0.1 is changing to be synchronous, one cycle latency memory interface now so that FPGA integration is more seamless, avoids restructuring `FETCH` and load timing. Lots of rework to architecture.md required.
+
+## 2026-07-31 
+- More fixing of architecture.md
+ - re did FSM control (added 2 FSM States)
+ - re did datapath
+ - updated mermaid diagram in `architecture.md`
+ - all of this had to be redone because of the decision to use synchronous memory for later FPGA implementation and to ease incorporation of different memory blocks; I think it will save time.
+ - this took all day. very frustrating, need to be better about defining requirements in the future so I do not have to go back and change things.

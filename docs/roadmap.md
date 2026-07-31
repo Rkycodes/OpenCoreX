@@ -8,10 +8,10 @@
 - [x] Complete datapath design
 - [x] Document datapath behavior and control signals
 - [x] Finalize all datapath MUX encodings
-- [] Audit FSM control outputs state-by-state
+- [x] Audit FSM control outputs state-by-state
 
 ### RTL
-- [ ] Define module interfaces
+- [x] Define module interfaces
 - [ ] Implement primitive RTL modules
 - [ ] Integrate datapath
 - [ ] Implement controller FSM

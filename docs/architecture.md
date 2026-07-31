@@ -894,6 +894,13 @@ A required integration-level verification property is:
 
 `R_EXEC` implies `ALUDecodeValid = 1`
 
+### `immediate_generator`
+
+| Port | Direction | Width |
+|---|---|---:|
+| `instruction` | Input | 32 |
+| `immediate` | Output | 32 |
+
 ### Immediate Generator Encodings
 
 The immediate generator extracts and sign-extends the immediate from the instruction stored in `IR`.

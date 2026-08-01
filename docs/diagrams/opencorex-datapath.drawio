@@ -1,6 +1,6 @@
-<mxfile host="Electron">
+<mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="u_aZO6G25Fb0Y8Y1J_VL">
-    <mxGraphModel dx="2289" dy="432" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="3195" dy="1103" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -83,7 +83,7 @@
             <mxPoint x="-310" y="460" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="YD-wVIlgNGsi_aPzuZgZ-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" value="Unified Memory&lt;div&gt;MemWrite&lt;/div&gt;" vertex="1">
+        <mxCell id="YD-wVIlgNGsi_aPzuZgZ-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" value="External Unified Memory&lt;br&gt;&lt;div&gt;mem_write&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="120" x="-450" y="410" as="geometry" />
         </mxCell>
         <mxCell id="YD-wVIlgNGsi_aPzuZgZ-33" edge="1" parent="1" source="YD-wVIlgNGsi_aPzuZgZ-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;fontSize=14;" target="YD-wVIlgNGsi_aPzuZgZ-10">
@@ -357,6 +357,13 @@
             <mxPoint x="40" y="30" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="q-xWpwxXWxipSzEZJNg3-2" edge="1" parent="1" source="YD-wVIlgNGsi_aPzuZgZ-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="YD-wVIlgNGsi_aPzuZgZ-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-420" y="115.05" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
         <mxCell id="YD-wVIlgNGsi_aPzuZgZ-22" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" value="Controller" vertex="1">
           <mxGeometry height="60" width="120" x="-290" y="70" as="geometry" />
         </mxCell>
@@ -366,7 +373,7 @@
         <mxCell id="YD-wVIlgNGsi_aPzuZgZ-23" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" value="ALU Decoder" vertex="1">
           <mxGeometry height="60" width="120" x="-70" y="70" as="geometry" />
         </mxCell>
-        <mxCell id="YD-wVIlgNGsi_aPzuZgZ-30" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="MemoryReadData" vertex="1">
+        <mxCell id="YD-wVIlgNGsi_aPzuZgZ-30" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="mem_read_data" vertex="1">
           <mxGeometry height="30" width="60" x="-303" y="430" as="geometry" />
         </mxCell>
         <mxCell id="YD-wVIlgNGsi_aPzuZgZ-38" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="IR[19:15] -&amp;gt;rs1" vertex="1">
@@ -451,13 +458,10 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="YD-wVIlgNGsi_aPzuZgZ-95" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="ALUOut" vertex="1">
-          <mxGeometry height="30" width="90" x="-190" y="1040" as="geometry" />
+          <mxGeometry height="30" width="90" x="-203" y="1045" as="geometry" />
         </mxCell>
-        <mxCell id="YD-wVIlgNGsi_aPzuZgZ-104" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="WriteData" vertex="1">
-          <mxGeometry height="30" width="60" x="-530" y="425" as="geometry" />
-        </mxCell>
-        <mxCell id="YD-wVIlgNGsi_aPzuZgZ-106" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="MemWrite" vertex="1">
-          <mxGeometry height="30" width="60" x="-530" y="395" as="geometry" />
+        <mxCell id="YD-wVIlgNGsi_aPzuZgZ-106" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="mem_write_data" vertex="1">
+          <mxGeometry height="30" width="60" x="-552" y="420" as="geometry" />
         </mxCell>
         <mxCell id="YD-wVIlgNGsi_aPzuZgZ-107" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="&lt;br&gt;&lt;div&gt;MDRWrite&lt;/div&gt;" vertex="1">
           <mxGeometry height="30" width="60" x="-120" y="650" as="geometry" />
@@ -561,8 +565,17 @@
         <mxCell id="zbbUr4Now170DL1BQkQ--49" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="error" vertex="1">
           <mxGeometry height="30" width="60" x="-170" y="50" as="geometry" />
         </mxCell>
-        <mxCell id="zbbUr4Now170DL1BQkQ--50" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;clk: all clocked registers, Register File, Controller, and Unified Memory write port&lt;/div&gt;&lt;div&gt;reset: Controller and all internal datapath registers&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; (active-high asynchronous)&lt;/div&gt;&lt;div&gt;PC, OldPC, PCPlus4, IR, A, B, ALUOut, MDR&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;The register file entries and unified memory are not reset&lt;/div&gt;" vertex="1">
+        <mxCell id="zbbUr4Now170DL1BQkQ--50" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;clk: all clocked registers, Register File, Controller, and external memory synchronous read/write port&lt;/div&gt;&lt;div&gt;reset: Controller and all internal datapath registers&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; (active-high asynchronous)&lt;/div&gt;&lt;div&gt;PC, OldPC, PCPlus4, IR, A, B, ALUOut, MDR&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;The register file entries and unified memory are not reset&lt;/div&gt;" vertex="1">
           <mxGeometry height="120" width="310" x="-1580" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="q-xWpwxXWxipSzEZJNg3-1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="mem_addr" vertex="1">
+          <mxGeometry height="30" width="60" x="-382.99571428571426" y="382.99857142857144" as="geometry" />
+        </mxCell>
+        <mxCell id="q-xWpwxXWxipSzEZJNg3-3" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="mem_read" vertex="1">
+          <mxGeometry height="30" width="60" x="-463.99523809523805" y="84.99523809523808" as="geometry" />
+        </mxCell>
+        <mxCell id="q-xWpwxXWxipSzEZJNg3-6" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="mem_write" vertex="1">
+          <mxGeometry height="30" width="60" x="-535.9966158288718" y="395" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

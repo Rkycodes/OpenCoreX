@@ -1,0 +1,20 @@
+# Verilator build output
+obj_dir/
+
+# Simulation waveforms
+*.vcd
+*.fst
+*.ghw
+
+# Windows metadata
+*:Zone.Identifier
+
+# Editor and OS files
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.log
+*.tmp
+*~

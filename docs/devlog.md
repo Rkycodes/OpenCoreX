@@ -63,3 +63,9 @@
  - updated mermaid diagram in `architecture.md`
  - all of this had to be redone because of the decision to use synchronous memory for later FPGA implementation and to ease incorporation of different memory blocks; I think it will save time.
  - this took all day. very frustrating, need to be better about defining requirements in the future so I do not have to go back and change things.
+
+## 2026-08-01
+- Completed ALU rtl
+
+## 2026-08-02
+- Completed ALU testbench (11 Tests)

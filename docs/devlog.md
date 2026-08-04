@@ -69,3 +69,6 @@
 
 ## 2026-08-02
 - Completed ALU testbench (11 Tests)
+
+## 2026-08-03
+- completed ALU decoder + ALU decoder testbench

@@ -72,3 +72,7 @@
 
 ## 2026-08-03
 - completed ALU decoder + ALU decoder testbench
+
+## 2026-08-05
+- completed immediate generator + immediate generator testbench
+- testbench was a little longer than I meant it to be but it was similar to decoder testbench so it was not too bad to write out.

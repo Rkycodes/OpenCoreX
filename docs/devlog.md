@@ -81,3 +81,6 @@
 - complete register file rtl + tb
 - reg file rtl was not bad at all, testbench kicked my butt again, long testbench
 - dreading making the controller and cpu, I already know those testbenches are going to be 400+ lines
+
+## 2026-08-08
+- completed memory rtl + passed lint

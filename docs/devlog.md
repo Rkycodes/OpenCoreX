@@ -84,3 +84,13 @@
 
 ## 2026-08-08
 - completed memory rtl + passed lint
+
+## 2026-08-09
+
+- completed and verified the single-port synchronous memory module
+- tested normal word-aligned reads and writes through the memory interface
+- verified optional program/data initialization using `$readmemh`
+- added tests for simultaneous read/write requests, misaligned addresses, and out-of-range accesses
+- debugged a subtle initialization failure caused by the hex file missing a final newline (spent way too long on this)
+- confirmed that all intended error cases trigger `$fatal` correctly
+- memory RTL and standalone verification are now complete

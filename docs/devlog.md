@@ -94,3 +94,48 @@
 - debugged a subtle initialization failure caused by the hex file missing a final newline (spent way too long on this)
 - confirmed that all intended error cases trigger `$fatal` correctly
 - memory RTL and standalone verification are now complete
+
+## 2026-08-11
+
+- began implementing the controller
+- completed the 16 state enum and asynchronous reset state register
+- drafted next state logic for arithmetic, memory, branch, jump, and error paths
+- added full instruction encoding validation in the decode path
+- next: fix remaining syntax issues, implement control outputs, and write the controller testbench
+
+## 2026-8-13
+- completed and linted 16-state multicycle controller RTL
+- finished next state logic logic
+- added legality checks for all 10 instructions
+- bunch of syntax debugging
+- next: build self checking testbench and verify all legal paths, illegal encoding, async reset, and sticky error behavior
+
+## 2026-08-14
+
+- began building the self-checking controller testbench
+- added the controller signal declarations, DUT connections, and clock generator
+- grouped all 19 controller outputs into one 23-bit packed control vector
+- designed a reusable comparison task using `!==` to detect incorrect, unknown, or high-impedance outputs
+- reviewed simulation timing, including settling delays and asynchronous-reset behavior
+- next: implement the reset task, define expected state-control vectors, and test every legal and illegal instruction path
+
+## 2026-08-15
+- completed the reusable frameowrk for the contorller testbench
+- implemented and verified async reset, reset state retenetion and post reset state progression
+- passed complete path tests for arthmetic functions
+- started working through LW and SW address, read, capture and write back + write
+- next: implement LW and SW sequences then make BEQ, JAL, illegal error
+
+## 2026-08-16
+- finished the controller testbench
+- added targeted tests for all 10 supported instructions
+- verified async reset enters `FETCH` and holds while asserted
+- added exhaustive decode testing across all 131,072 `{opcode, funct3, funct7}` combinations
+  - 1,541 legal combos
+  - 129,531 illegal combos
+- verified illegal instructions enter `ERROR` without asserting memory, register or PC write controls
+- Verified `ERROR` remains active even if the instruction inputs become legal
+- Verified reset recovers controller from `ERROR` to `FETCH`
+- All targeted and exhaustive tests passed in Verilator
+- next: begin implementing `datapath.sv`
+

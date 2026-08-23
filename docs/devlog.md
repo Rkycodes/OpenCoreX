@@ -139,3 +139,9 @@
 - All targeted and exhaustive tests passed in Verilator
 - next: begin implementing `datapath.sv`
 
+## 2026-08-22
+- fully audited the datapath connections
+- began implementing datapath rtl in `datapath.sv`
+
+
+

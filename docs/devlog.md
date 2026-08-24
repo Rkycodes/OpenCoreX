@@ -143,5 +143,15 @@
 - fully audited the datapath connections
 - began implementing datapath rtl in `datapath.sv`
 
+## 2026-08-23
+- completed and linted the multicycle datapath RTL
+- memory outside the datapath for connection at the CPU top level
+- created a thoroughly commented, self checking datapath testbench
+- passed 68/68 tests in verilator
+- verified async reset, fetch sequencing, register hold behavior, instruction capture, operand capture, ALU execution, taken and untaken branches, memory paths, and all writeback sources
+- verified that async datapath reset clears all eight ddatapath registers without erasing the register file
+- next: integrate these in a cpu top module
+
+
 
 

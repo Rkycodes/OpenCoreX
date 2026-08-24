@@ -41,7 +41,11 @@ module datapath (
     logic [2:0] ALUControl;
 
     //3, 1 bit signal
-    logic Zero, ALUDecodeValid, PCEnable;
+    logic Zero, PCEnable;
+
+    /* verilator lint_off UNUSEDSIGNAL */
+    logic ALUDecodeValid;
+    /* verilator lint_on UNUSEDSIGNAL */
 
     assign opcode = IR[6:0];
     assign funct3 = IR[14:12];
@@ -84,7 +88,7 @@ module datapath (
     //two, one bit muxes
 
     assign mem_addr = MemAddrSource ? ALUOut : PC;
-    assign NextPC   = PCSource ? ALUOut : ALUResult;
+    assign NextPC = PCSource ? ALUOut : ALUResult;
 
     always_comb begin
         ALUOperandA = 32'b0;
@@ -122,12 +126,22 @@ module datapath (
     always_ff @(posedge clk or posedge reset) begin
         if (reset) begin
             //set all eight datapath registers to zero
+            {PC, OldPC, PCPlus4, IR, A, B, ALUOut, MDR} <= '0;
             
         end
         else begin
             //eight independent write-enable checks
+            if (PCEnable)      PC <= NextPC;
+            if (OldPCWrite)    OldPC <= PC;
+            if (PCPlus4Write)  PCPlus4 <= ALUResult;
+            if (IRWrite)       IR <= mem_read_data;
+            if (AWrite)        A <= ReadData1;
+            if (BWrite)        B <= ReadData2;
+            if (ALUOutWrite)   ALUOut <= ALUResult;
+            if (MDRWrite)      MDR <= mem_read_data;
         end
     end
+endmodule
 
 
 

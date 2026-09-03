@@ -152,6 +152,13 @@
 - verified that async datapath reset clears all eight ddatapath registers without erasing the register file
 - next: integrate these in a cpu top module
 
+## 2026-09-02
+- it's been a while, school started and it has been busy
+- audited the datapath_tb for verification coverage
+- implemented `rtl/opencorex_core.sv` as a wrapper connecting the controller and datapath
+- linted the core and came back clean
+- next: build the `opencorex_core_tb.sv`, connect the core to synchrnous memory and execute complete v0.1 instructions to prove functionality
+
 
 
 

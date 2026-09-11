@@ -1,6 +1,6 @@
 # OpenCoreX Roadmap
 
-## v0.1 — Simulation-Only Multicycle RV32I Core (Target: September 1, 2026)
+## v0.1 — Simulation-Only Multicycle RV32I Subset Core (Completed: September 11, 2026)
 
 ### Architecture
 - [x] Define processor architecture
@@ -12,16 +12,16 @@
 
 ### RTL
 - [x] Define module interfaces
-- [ ] Implement primitive RTL modules
-- [ ] Integrate datapath
-- [ ] Implement controller FSM
-- [ ] Integrate complete processor
+- [x] Implement primitive RTL modules
+- [x] Integrate datapath
+- [x] Implement controller FSM
+- [x] Integrate complete processor
 
 ### Verification
-- [ ] Develop module-level testbenches
-- [ ] Verify supported instructions
-- [ ] Run full processor regression
-- [ ] Validate example programs
+- [x] Develop module-level testbenches
+- [x] Verify supported instructions
+- [x] Run full processor regression
+- [x] Validate example programs
 
 ### Future Milestones
 - [ ] Expanded RV32I support

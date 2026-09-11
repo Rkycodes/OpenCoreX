@@ -51,12 +51,12 @@
 - created this here devlog document!
 
 ## 2026-07-30
-- Finalized FSM Control 
+- Finalized FSM Control
 - Audited `architecture.md` for mistakes and conflicts and resolved them.
 - begin RTL Module boundaries.
 - Decided that OpenCoreX v0.1 is changing to be synchronous, one cycle latency memory interface now so that FPGA integration is more seamless, avoids restructuring `FETCH` and load timing. Lots of rework to architecture.md required.
 
-## 2026-07-31 
+## 2026-07-31
 - More fixing of architecture.md
  - re did FSM control (added 2 FSM States)
  - re did datapath
@@ -159,6 +159,20 @@
 - linted the core and came back clean
 - next: build the `opencorex_core_tb.sv`, connect the core to synchrnous memory and execute complete v0.1 instructions to prove functionality
 
+## Week of 2026-09-07
+- completed the first full end-to-end verification of the OpenCoreX v0.1 processor
+- connected `opencorex_core` to the external synchronous memory module
+- created `programs/hex/integration_smoke.hex` to execute all 10 supported instructions
+- verified final register values, stored memory data, branches, jumps, loads, stores, and the `RKYC` completion signature
+- created a legal corner-case program covering negative immediates, negative arithmetic results, writes to `x0`, a not-taken `BEQ`, backward branches, and backward `JAL` with `rd = x0`
+- created an illegal-instruction integration test that verifies entry into the sticky `ERROR` state without architectural side effects
+- created a reset-during-execution test that verifies an in-flight instruction is cancelled and execution restarts correctly
+- ran all 12 positive testbenches successfully
+- validated all three expected-failure memory tests for simultaneous read/write, misaligned addresses, and out-of-range addresses
+- completed warning-free Verilator lint with `-Wall` for both the CPU hierarchy and memory module
+- completed the OpenCoreX v0.1 simulation-only multicycle RV32I subset milestone
+- added a root `Makefile` and `scripts/verify.sh` for reproducible one-command verification
+- verified that `make verify` runs lint, all 12 positive testbenches, and all three expected-failure memory tests
 
 
 

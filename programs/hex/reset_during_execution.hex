@@ -1,0 +1,29 @@
+// Address 0x00: addi x3, x0, 99
+// Establish a sentinel before the interrupted ADD.
+06300193
+
+// Address 0x04: addi x1, x0, 5
+00500093
+
+// Address 0x08: addi x2, x0, 7
+00700113
+
+// Address 0x0C: add x3, x1, x2
+// The testbench asserts reset during this instruction.
+002081B3
+
+// Address 0x10: sw x3, 128(x0)
+08302023
+
+// Address 0x14: lw x31, 160(x0)
+0A002F83
+
+// Address 0x18: sw x31, 188(x0)
+0BF02E23
+
+// Address 0x1C: jal x0, 0
+0000006F
+
+// Completion signature at word index 40 / byte address 160.
+@28
+524B5943

@@ -1,0 +1,65 @@
+// OpenCoreX v0.1 integrated-core smoke test
+//
+// Address 0x00: addi x1, x0, 12
+00C00093
+
+// Address 0x04: addi x2, x0, 10
+00A00113
+
+// Address 0x08: add x3, x1, x2
+002081B3
+
+// Address 0x0C: sub x4, x1, x2
+40208233
+
+// Address 0x10: and x5, x1, x2
+0020F2B3
+
+// Address 0x14: or x6, x1, x2
+0020E333
+
+// Address 0x18: xor x7, x1, x2
+0020C3B3
+
+// Address 0x1C: addi x8, x7, 5
+00538413
+
+// Address 0x20: sw x8, 128(x0)
+08802023
+
+// Address 0x24: lw x9, 128(x0)
+08002483
+
+// Address 0x28: addi x10, x0, 17
+01100513
+
+// Address 0x2C: beq x8, x9, 8 (target 0x34)
+00940463
+
+// Address 0x30: addi x10, x0, 99 (must be skipped)
+06300513
+
+// Address 0x34: addi x12, x0, 23
+01700613
+
+// Address 0x38: jal x11, 8 (target 0x40; link 0x3C)
+008005EF
+
+// Address 0x3C: addi x12, x0, 99 (must be skipped)
+06300613
+
+// Address 0x40: lw x31, 160(x0)
+0A002F83
+
+// Address 0x44: sw x31, 188(x0) (completion transaction)
+0BF02E23
+
+// Address 0x48: jal x0, 0 (safety loop)
+0000006F
+
+// Continue initialization at word index 0x28.
+// Word index 40 corresponds to byte address 160.
+@28
+
+// ASCII "RKYC" completion signature
+524B5943

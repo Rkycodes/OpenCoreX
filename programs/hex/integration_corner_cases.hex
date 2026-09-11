@@ -1,0 +1,71 @@
+// OpenCoreX v0.1 legal corner-case integration program
+
+// Address 0x00: addi x1, x0, -5
+FFB00093
+
+// Address 0x04: addi x2, x0, 3
+00300113
+
+// Address 0x08: add x3, x1, x2 (-5 + 3 = -2)
+002081B3
+
+// Address 0x0C: sub x4, x1, x2 (-5 - 3 = -8)
+40208233
+
+// Address 0x10: addi x0, x0, 99 (write must be ignored)
+06300013
+
+// Address 0x14: addi x5, x0, 7 (proves x0 still reads as zero)
+00700293
+
+// Address 0x18: addi x6, x0, 17 (not-taken branch sentinel)
+01100313
+
+// Address 0x1C: beq x1, x2, 8 (must not be taken)
+00208463
+
+// Address 0x20: addi x6, x0, 23 (must execute)
+01700313
+
+// Address 0x24: addi x7, x0, 0 (backward-branch counter)
+00000393
+
+// Address 0x28: addi x8, x0, 1 (backward-branch comparison value)
+00100413
+
+// Address 0x2C: addi x7, x7, 1
+00138393
+
+// Address 0x30: beq x7, x8, -4 (taken once, then not taken)
+FE838EE3
+
+// Address 0x34: addi x13, x0, 0 (backward-jump counter)
+00000693
+
+// Address 0x38: addi x14, x0, 2 (backward-jump loop limit)
+00200713
+
+// Address 0x3C: addi x13, x13, 1
+00168693
+
+// Address 0x40: beq x13, x14, 8 (exit after two iterations)
+00E68463
+
+// Address 0x44: jal x0, -8 (backward jump to 0x3C)
+FF9FF06F
+
+// Address 0x48: lw x31, 160(x0)
+0A002F83
+
+// Address 0x4C: sw x31, 188(x0) (completion transaction)
+0BF02E23
+
+// Address 0x50: jal x0, 0 (safety loop)
+0000006F
+
+// Continue initialization at word index 0x28.
+// Word index 40 corresponds to byte address 160.
+@28
+
+// ASCII "RKYC" completion signature
+524B5943

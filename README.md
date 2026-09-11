@@ -6,11 +6,14 @@ OpenCoreX is a long-term hardware engineering portfolio project focused on moder
 
 ## Initial Milestone
 
-The first milestone is to design and verify a simulation only, non-pipelined, multicycle RISC-V processor in SystemVerilog. The processor will implement a defined subset of the 32-bit RV32I base instruction set. This stage emphasizes understanding and documenting the architecture, control sequence, RTL, and verification methodology rather than simply producing a working CPU. The goal is to have this stage done by September 1, 2026 at the latest.
+OpenCoreX v0.1 is a simulation-only, non-pipelined, multicycle processor written in SystemVerilog. It implements a defined 10-instruction subset of the 32-bit RV32I base instruction set.
+
+The milestone focuses on architectural understanding, control sequencing, synthesizable RTL, synchronous-memory integration, and self-checking verification. OpenCoreX v0.1 is not a complete RV32I implementation.
 
 ## Supported Instructions
 
 OpenCoreX v0.1 supports 10 instructions:
+
 - `ADD`
 - `SUB`
 - `AND`
@@ -21,18 +24,21 @@ OpenCoreX v0.1 supports 10 instructions:
 - `SW`
 - `BEQ`
 - `JAL`
-  
+
 ## Current Status
 
-The processor architecture and all standalone RTL modules are complete:
+OpenCoreX v0.1 is complete and functionally verified in Verilator.
+
+The integrated processor contains:
 
 - ALU
 - ALU decoder
-- Immediate Generator
+- Immediate generator
 - Register file
-- Synchronous single-port memory
-- Multicycle controller
+- Synchronous single-port unified memory
+- 16-state multicycle controller
 - Multicycle datapath
+- Top-level processor wrapper
 
 ## Architecture
 
@@ -53,28 +59,42 @@ Detailed architecture, control sequencing, MUX encodings, and instruction paths 
 
 ## Verification
 
-Each RTL module has a self-checking SystemVerilog testbench.
+Every RTL module has a self-checking SystemVerilog testbench. The controller, datapath, and complete processor also have dedicated integration tests.
 
-Verification currently includes:
+Verification includes:
 
-- Directed functional tests
-- Boundary and wraparound cases
-- Reserved-encoding behavior
-- Synchronous memory timing
-- Memory alignment and range checks
+- Directed ALU and decoder tests
+- Immediate-generation boundary tests
 - Full writable register-file coverage
-- Exhaustive controller instruction decode
-- Sticky `ERROR` behavior
-- Cycle-level datapath integration testing
-- Verilator lint with `-Wall`
+- Synchronous memory reads, writes, and initialization
+- Memory alignment and range protection
+- Simultaneous memory read/write rejection
+- Exhaustive controller decode across all 131,072 `{opcode, funct3, funct7}` combinations
+- Cycle-level datapath control and writeback tests
+- End-to-end execution of all 10 supported instructions
+- Taken and not-taken branches
+- Forward and backward branches and jumps
+- Negative immediates and arithmetic results
+- Architectural `x0` behavior
+- Illegal-instruction detection and sticky `ERROR` behavior
+- Reset during an in-flight instruction
+- Restart and successful program completion after reset
+- Clean Verilator RTL lint with `-Wall`
+- A passing regression across all 12 positive testbenches
+- Three validated expected-failure memory tests
+
+The integration programs use an external synchronous memory initialized from hexadecimal files under `programs/hex/`. Successful programs write the completion signature `0x524B5943` (`RKYC`) to byte address `0xBC`.
+
+OpenCoreX v0.1 verifies its defined 10-instruction subset. It does not claim complete RV32I compliance, privileged architecture support, exception handling, or hardware traps for invalid memory accesses.
   
 ## Roadmap
 
-### v0.1 — Integrated Multicycle Core
+### v0.1 — Integrated Multicycle Core — Complete
 
-- Connect the controller, datapath, and unified memory
-- Execute complete programs containing all 10 supported instructions
-- Verify legal execution, memory operations, branches, jumps, and error behavior
+- Integrated the controller, datapath, register file, and unified memory
+- Executed complete programs containing all 10 supported instructions
+- Verified legal execution, memory operations, control flow, illegal instructions, and reset recovery
+- Completed warning-free RTL lint and the full manual regression
 
 ### v0.2 — Verification Infrastructure
 

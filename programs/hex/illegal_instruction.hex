@@ -1,0 +1,20 @@
+// Address 0x00: addi x1, x0, 42
+02A00093
+
+// Address 0x04: addi x2, x0, 17
+01100113
+
+// Address 0x08: sw x2, 132(x0)
+// Establish memory[33] = 17 before the illegal instruction.
+08202223
+
+// Address 0x0C: unsupported instruction
+FFFFFFFF
+
+// Address 0x10: addi x1, x0, 99
+// Must never execute.
+06300093
+
+// Address 0x14: sw x1, 132(x0)
+// Must never overwrite memory[33].
+08102223

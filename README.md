@@ -86,7 +86,24 @@ Verification includes:
 The integration programs use an external synchronous memory initialized from hexadecimal files under `programs/hex/`. Successful programs write the completion signature `0x524B5943` (`RKYC`) to byte address `0xBC`.
 
 OpenCoreX v0.1 verifies its defined 10-instruction subset. It does not claim complete RV32I compliance, privileged architecture support, exception handling, or hardware traps for invalid memory accesses.
-  
+
+## Running Verification
+
+OpenCoreX provides a one-command verification flow for Linux and WSL.
+
+### Prerequisites
+
+- Verilator 5.x
+- GNU Make
+- A C++ compiler
+- Bash
+
+Run the complete verification suite from the repository root:
+
+```bash
+make verify
+```
+ 
 ## Roadmap
 
 ### v0.1 — Integrated Multicycle Core — Complete

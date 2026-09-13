@@ -105,7 +105,7 @@ module alu_decoder_tb;
 
         // Verify unsupported R-type encodings retain the safe invalid outputs
         check_decode(
-            2'b10, 3'b000, 7'b0000001,
+            2'b10, 3'b000, 7'b0000010,
             3'b000, 1'b0,
             "Invalid ADD/SUB funct7"
         );
@@ -139,6 +139,12 @@ module alu_decoder_tb;
             2'b11, 3'b000, 7'b0000000,
             3'b000, 1'b0,
             "Reserved ALUOp"
+        );
+
+        check_decode(
+            2'b10, 3'b000, 7'b0000001,
+            3'b101, 1'b1,
+            "R-type MUL"
         );
 
         $display("All ALU decoder tests passed.");

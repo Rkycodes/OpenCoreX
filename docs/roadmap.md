@@ -47,7 +47,7 @@ Goal: establish a correct and measurable scalar baseline for the exact workload 
 
 - [ ] Define the scalar algorithm and memory layout for `1 x 16` by `16 x 32` matrix-vector multiplication
 - [ ] Determine the minimum benchmark-driven ISA additions
-- [ ] Implement and verify scalar `MUL`
+- [x] Implement and verify scalar `MUL`
 - [ ] Add loop/branch control instructions only if they materially simplify the benchmark
 - [ ] Write and verify the CPU-only matrix-vector benchmark
 - [ ] Verify all 32 output values against a software reference

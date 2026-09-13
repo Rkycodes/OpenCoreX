@@ -80,7 +80,7 @@ Verification includes:
 - Reset during an in-flight instruction
 - Restart and successful program completion after reset
 - Clean Verilator RTL lint with `-Wall`
-- A passing regression across all 12 positive testbenches
+- A passing regression across all 13 positive testbenches
 - Three validated expected-failure memory tests
 
 The integration programs use an external synchronous memory initialized from hexadecimal files under `programs/hex/`. Successful programs write the completion signature `0x524B5943` (`RKYC`) to byte address `0xBC`.

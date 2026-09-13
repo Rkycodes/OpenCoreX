@@ -141,8 +141,62 @@ module alu_tb;
             tests_passed++;
         end
 
-        //RESERVED ALUControl encoding tests: 101 thru 111
-        for (integer encoding = 5; encoding <=7; encoding++) begin
+        //MUL Test (positive operands)
+        operand_a  = 32'd7;
+        operand_b  = 32'd6;
+        ALUControl = 3'b101;
+        #1;
+
+        tests_run++;
+
+        if ((result !== 32'd42) || (Zero !== 1'b0)) begin
+            $error(
+                "MUL failed: result=%0d, Zero=%b",
+                result,
+                Zero
+            );
+        end else begin
+            tests_passed++;
+        end
+
+        //MUL Test (negative operand)
+        operand_a  = 32'hFFFF_FFFD; // -3
+        operand_b  = 32'd6;
+        ALUControl = 3'b101;
+        #1;
+
+        tests_run++;
+
+        if ((result !== 32'hFFFF_FFEE) || (Zero !== 1'b0)) begin
+            $error(
+                "Negative MUL failed: result=%08h, Zero=%b",
+                result,
+                Zero
+            );
+        end else begin
+            tests_passed++;
+        end
+
+        //MUL Test (upper 32 product bits are discarded)
+        operand_a  = 32'h0001_0000;
+        operand_b  = 32'h0001_0000;
+        ALUControl = 3'b101;
+        #1;
+
+        tests_run++;
+
+        if ((result !== 32'h0000_0000) || (Zero !== 1'b1)) begin
+            $error(
+                "Truncated MUL failed: result=%08h, Zero=%b",
+                result,
+                Zero
+            );
+        end else begin
+            tests_passed++;
+        end
+
+        //RESERVED ALUControl encoding tests: 110 and 111
+        for (integer encoding = 6; encoding <=7; encoding++) begin
             operand_a = 32'd5;
             operand_b = 32'd3;
             ALUControl = encoding[2:0];

@@ -174,5 +174,23 @@
 - added a root `Makefile` and `scripts/verify.sh` for reproducible one-command verification
 - verified that `make verify` runs lint, all 12 positive testbenches, and all three expected-failure memory tests
 
-
+## 2026-09-13
+- implemented and verified scalar RV32M `MUL` as the first benchmark-driven CPU extension after OpenCoreX v0.1
+- assigned `ALUControl = 3'b101` to multiplication and implemented the lower 32 bits of the product
+- added exact MUL decoding using `opcode = 0110011`, `funct3 = 000`, and `funct7 = 0000001`
+- reused the existing `R_EXEC` and `ALU_WRITEBACK` states without adding datapath registers, control signals, or FSM states
+- expanded the ALU testbench to 13 tests, covering positive multiplication, negative operands, truncation, and `Zero` behavior
+- updated the ALU decoder testbench to verify MUL and reject nearby unsupported encodings
+- updated the controller’s targeted and exhaustive verification
+  - 1,542 legal encodings
+  - 129,530 illegal encodings
+  - 131,072 total encodings
+- created `programs/hex/scalar_mul.hex` and documented it in `programs/scalar_mul.md`
+- created `tb/opencorex_mul_tb.sv` for end-to-end MUL verification
+- verified positive, negative, negative-times-negative, zero, low-word truncation, and `x0` destination behavior
+- completed the scalar MUL integration test successfully at cycle 68
+- added `opencorex_mul_tb` to the automated regression
+- completed warning-free RTL lint and passed the full regression with 13 positive testbenches and three expected-failure memory tests
+- preserved the original processor specification as `docs/architecture-v0.1.md`
+- documented the multiplier architecture and research timing assumptions in `docs/scalar-mul-extension.md`
 

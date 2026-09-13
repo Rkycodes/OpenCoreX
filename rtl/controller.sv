@@ -127,6 +127,10 @@ always_comb begin
                         {3'b111,7'b0000000}: begin
                             next_state = R_EXEC;
                         end
+                        //MUL
+                        {3'b000, 7'b0000001}: begin
+                            next_state= R_EXEC;
+                        end
                         //error if anything else
                         default: next_state = ERROR;
                     endcase

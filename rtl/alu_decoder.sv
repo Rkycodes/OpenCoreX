@@ -14,6 +14,7 @@ module alu_decoder (
     localparam logic [2:0] ALU_AND = 3'b010;
     localparam logic [2:0] ALU_OR  = 3'b011;
     localparam logic [2:0] ALU_XOR = 3'b100;
+    localparam logic [2:0] ALU_MUL = 3'b101;
 
     always_comb begin
         // Safe defaults for every unsupported encoding
@@ -57,6 +58,11 @@ module alu_decoder (
 
                     {7'b0000000, 3'b100}: begin
                         ALUControl     = ALU_XOR;
+                        ALUDecodeValid = 1'b1;
+                    end
+
+                    {7'b0000001, 3'b000}: begin
+                        ALUControl = ALU_MUL;
                         ALUDecodeValid = 1'b1;
                     end
 

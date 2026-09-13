@@ -550,7 +550,8 @@ module controller_tb;
                         {3'b000, 7'b0100000}, //SUB
                         {3'b100, 7'b0000000}, //XOR
                         {3'b110, 7'b0000000}, //OR
-                        {3'b111, 7'b0000000}: //AND
+                        {3'b111, 7'b0000000}, //AND
+                        {3'b000, 7'b0000001}: //MUL
                             is_legal_encoding = 1'b1;
 
                         default:
@@ -701,17 +702,17 @@ module controller_tb;
                 end
             end
 
-            if (legal_count != 1541)
+            if (legal_count != 1542)
                 $fatal(
                     1,
-                    "Incorrect legal count: actual=%0d expected=1541",
+                    "Incorrect legal count: actual=%0d expected=1542",
                     legal_count
                 );
 
-            if (illegal_count != 129531)
+            if (illegal_count != 129530)
                 $fatal(
                     1,
-                    "Incorrect illegal count: actual=%0d expected=129531",
+                    "Incorrect illegal count: actual=%0d expected=129530",
                     illegal_count
                 );
 
@@ -817,6 +818,13 @@ module controller_tb;
             3'b111, 7'b0000000,
             "AND"
         );
+
+        test_rtype(
+            3'b000,
+            7'b0000001,
+            "MUL"
+        );
+
         test_addi();
 
         test_lw();

@@ -17,7 +17,8 @@ always_comb begin
         3'b010: result = operand_a & operand_b; // AND
         3'b011: result = operand_a | operand_b; // OR
         3'b100: result = operand_a ^ operand_b; // XOR
-        default: result = '0; // Default case, reserved for 101-111
+        3'b101: result = operand_a * operand_b; // MUL
+        default: result = '0; // Default case, reserved for 110-111
 
 
     endcase

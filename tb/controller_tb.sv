@@ -10,6 +10,7 @@ module controller_tb;
     //Write enables
     logic PCWrite;
     logic PCWriteCond;
+    logic BranchInvert;
     logic IRWrite;
     logic OldPCWrite;
     logic PCPlus4Write;
@@ -35,11 +36,12 @@ module controller_tb;
     logic error;
 
     //packed copy of all controller outputs for verification
-    logic [22:0] actual_controls;
+    logic [23:0] actual_controls;
 
     assign actual_controls = {
         PCWrite,
         PCWriteCond,
+        BranchInvert,
         IRWrite,
         OldPCWrite,
         PCPlus4Write,
@@ -59,9 +61,10 @@ module controller_tb;
         WriteBackSelect
     };
 
-    localparam logic [22:0] FETCH_CONTROLS = {
+    localparam logic [23:0] FETCH_CONTROLS = {
         1'b1,  //PCWrite
         1'b0,  //PCWriteCond
+        1'b0, //BranchInvert
         1'b0,  //IRWrite
         1'b1,  //OldPCWrite
         1'b1,  //PCPlus4Write
@@ -81,11 +84,18 @@ module controller_tb;
         2'b00  //WriteBackSelect
     };
 
-    localparam logic [22:0] FETCH_CAPTURE_CONTROLS =
-        23'b001_00000_00000_00000_00000;
+        localparam logic [23:0] FETCH_CAPTURE_CONTROLS = {
+        11'b00010000000, // IRWrite
+        4'b0000,
+        2'b00,
+        2'b00,
+        2'b00,
+        1'b0,
+        2'b00
+    };
 
-    localparam logic [22:0] DECODE_LEGAL_CONTROLS = {
-        10'b0000011000,//AWrite and BWrite
+    localparam logic [23:0] DECODE_LEGAL_CONTROLS = {
+        11'b00000011000,//AWrite and BWrite
         4'b0000,//MemRead, MemWrite, error, MemAddrSource
         2'b00,//ALUSrcA
         2'b00,//ALUSrcB
@@ -94,8 +104,8 @@ module controller_tb;
         2'b00//WriteBackSelect
     };
 
-    localparam logic [22:0] R_EXEC_CONTROLS = {
-        10'b0000000100, //ALUOutWrite
+    localparam logic [23:0] R_EXEC_CONTROLS = {
+        11'b00000000100, //ALUOutWrite
         4'b0000,
         2'b10,//ALUSrcA = A
         2'b00, //ALUSrcB = B
@@ -104,8 +114,8 @@ module controller_tb;
         2'b00
     };
 
-    localparam logic [22:0] ALU_WRITEBACK_CONTROLS = {
-        10'b0000000001, //RegWrite
+    localparam logic [23:0] ALU_WRITEBACK_CONTROLS = {
+        11'b00000000001, //RegWrite
         4'b0000,
         2'b00,
         2'b00,
@@ -114,8 +124,8 @@ module controller_tb;
         2'b00//ALUOut selected by default
     };
 
-    localparam logic [22:0] I_EXEC_CONTROLS = {
-        10'b0000000100, //ALUOutWrite
+    localparam logic [23:0] I_EXEC_CONTROLS = {
+        11'b00000000100, //ALUOutWrite
         4'b0000,
         2'b10,//ALUSrcA = A
         2'b10,//ALUSrcB = immediate
@@ -124,11 +134,11 @@ module controller_tb;
         2'b00
     };
 
-    localparam logic [22:0] MEM_ADDR_CONTROLS =
+    localparam logic [23:0] MEM_ADDR_CONTROLS =
         I_EXEC_CONTROLS;
 
-    localparam logic [22:0] MEM_READ_CONTROLS = {
-    10'b0000000000,
+    localparam logic [23:0] MEM_READ_CONTROLS = {
+    11'b00000000000,
     4'b1001, //MemRead and MemAddrSource
     2'b00,
     2'b00,
@@ -137,8 +147,8 @@ module controller_tb;
     2'b00
 };
 
-    localparam logic [22:0] MEM_READ_CAPTURE_CONTROLS = {
-        10'b0000000010, //MDRWrite
+    localparam logic [23:0] MEM_READ_CAPTURE_CONTROLS = {
+        11'b00000000010, //MDRWrite
         4'b0000,
         2'b00,
         2'b00,
@@ -147,8 +157,8 @@ module controller_tb;
         2'b00
     };
 
-    localparam logic [22:0] MEM_WRITEBACK_CONTROLS = {
-        10'b0000000001, //RegWrite
+    localparam logic [23:0] MEM_WRITEBACK_CONTROLS = {
+        11'b00000000001, //RegWrite
         4'b0000,
         2'b00,
         2'b00,
@@ -157,8 +167,8 @@ module controller_tb;
         2'b01           //MDR
     };
 
-    localparam logic [22:0] MEM_WRITE_CONTROLS = {
-        10'b0000000000,
+    localparam logic [23:0] MEM_WRITE_CONTROLS = {
+        11'b00000000000,
         4'b0101, //MemWrite and MemAddrSource
         2'b00,
         2'b00,
@@ -167,8 +177,8 @@ module controller_tb;
         2'b00
     };
 
-    localparam logic [22:0] BRANCH_TARGET_CONTROLS = {
-        10'b0000000100, //ALUOutWrite
+    localparam logic [23:0] BRANCH_TARGET_CONTROLS = {
+        11'b00000000100, //ALUOutWrite
         4'b0000,
         2'b01,          //ALUSrcA = OldPC
         2'b10,          //ALUSrcB = immediate
@@ -177,39 +187,49 @@ module controller_tb;
         2'b00
     };
 
-    localparam logic [22:0] BRANCH_COMPARE_CONTROLS = {
-        10'b0100000000, //PCWriteCond
+    localparam logic [23:0] BEQ_BRANCH_COMPARE_CONTROLS = {
+        11'b01000000000, // PCWriteCond=1, BranchInvert=0
         4'b0000,
-        2'b10,          //ALUSrcA = A
-        2'b00,          //ALUSrcB = B
-        2'b01,          //ALUOp = SUB
-        1'b1,           //PCSource = ALUOut
+        2'b10,           // ALUSrcA=A
+        2'b00,           // ALUSrcB=B
+        2'b01,           // ALUOp=SUB
+        1'b1,            // PCSource=ALUOut
         2'b00
     };
 
-    localparam logic [22:0] JUMP_TARGET_CONTROLS =
+    localparam logic [23:0] BNE_BRANCH_COMPARE_CONTROLS = {
+        11'b01100000000, // PCWriteCond=1, BranchInvert=1
+        4'b0000,
+        2'b10,
+        2'b00,
+        2'b01,
+        1'b1,
+        2'b00
+    };
+
+    localparam logic [23:0] JUMP_TARGET_CONTROLS =
         BRANCH_TARGET_CONTROLS;
 
-    localparam logic [22:0] JUMP_COMPLETE_CONTROLS = {
-        10'b1000000001, //PCWrite and RegWrite
+    localparam logic [23:0] JUMP_COMPLETE_CONTROLS = {
+        11'b10000000001, // PCWrite and RegWrite
         4'b0000,
         2'b00,
         2'b00,
         2'b00,
-        1'b1,           //PCSource = ALUOut
-        2'b10           //write back PCPlus4
+        1'b1,            // PCSource = ALUOut
+        2'b10            // Write back PCPlus4
     };
 
-    localparam logic [22:0] DECODE_ILLEGAL_CONTROLS = 23'b0;
+    localparam logic [23:0] DECODE_ILLEGAL_CONTROLS = 24'b0;
 
-    localparam logic [22:0] ERROR_CONTROLS = {
-        10'b0000000000, //all write enables
-        4'b0010,       //MemRead, MemWrite, error, MemAddrSource
-        2'b00,         //ALUSrcA
-        2'b00,         //ALUSrcB
-        2'b00,         //ALUOp
-        1'b0,          //PCSource
-        2'b00          //WriteBackSelect
+    localparam logic [23:0] ERROR_CONTROLS = {
+        11'b00000000000, // All write controls disabled
+        4'b0010,         // error=1
+        2'b00,
+        2'b00,
+        2'b00,
+        1'b0,
+        2'b00
     };
 
     controller dut(
@@ -220,6 +240,7 @@ module controller_tb;
         .funct7(funct7),
         .PCWrite(PCWrite),
         .PCWriteCond(PCWriteCond),
+        .BranchInvert(BranchInvert),
         .IRWrite(IRWrite),
         .OldPCWrite(OldPCWrite),
         .PCPlus4Write(PCPlus4Write),
@@ -247,7 +268,7 @@ module controller_tb;
     end
 
     task automatic check_controls (
-        input logic [22:0] expected_controls,
+        input logic [23:0] expected_controls,
         input string       test_name
     );
         begin
@@ -257,7 +278,7 @@ module controller_tb;
             if (actual_controls !== expected_controls) begin
                 $fatal(
                     1,
-                    "FAIL: %s | actual=%023b expected=%023b",
+                    "FAIL: %s | actual=%024b expected=%024b",
                     test_name,
                     actual_controls,
                     expected_controls
@@ -265,7 +286,7 @@ module controller_tb;
             end
 
             $display(
-                "PASS: %s | controls=%023b",
+                "PASS: %s | controls=%024b",
                 test_name,
                 actual_controls
             );
@@ -450,14 +471,20 @@ module controller_tb;
             reset_dut();
 
             opcode = 7'b1100011;
-            funct3 = 3'b000;
-            funct7 = 7'b1010101; //immediate bits; must be ignored
+            funct3 = 3'b000;     // BEQ
+            funct7 = 7'b1010101; // Immediate bits; must be ignored
 
             @(posedge clk);
-            check_controls(FETCH_CAPTURE_CONTROLS, "BEQ FETCH_CAPTURE");
+            check_controls(
+                FETCH_CAPTURE_CONTROLS,
+                "BEQ FETCH_CAPTURE"
+            );
 
             @(posedge clk);
-            check_controls(DECODE_LEGAL_CONTROLS, "BEQ DECODE");
+            check_controls(
+                DECODE_LEGAL_CONTROLS,
+                "BEQ DECODE"
+            );
 
             @(posedge clk);
             check_controls(
@@ -467,12 +494,55 @@ module controller_tb;
 
             @(posedge clk);
             check_controls(
-                BRANCH_COMPARE_CONTROLS,
+                BEQ_BRANCH_COMPARE_CONTROLS,
                 "BEQ BRANCH_COMPARE"
             );
 
             @(posedge clk);
-            check_controls(FETCH_CONTROLS, "BEQ returns to FETCH");
+            check_controls(
+                FETCH_CONTROLS,
+                "BEQ returns to FETCH"
+            );
+        end
+    endtask
+
+    task automatic test_bne;
+        begin
+            reset_dut();
+
+            opcode = 7'b1100011;
+            funct3 = 3'b001;     // BNE
+            funct7 = 7'b1010101; // Immediate bits; must be ignored
+
+            @(posedge clk);
+            check_controls(
+                FETCH_CAPTURE_CONTROLS,
+                "BNE FETCH_CAPTURE"
+            );
+
+            @(posedge clk);
+            check_controls(
+                DECODE_LEGAL_CONTROLS,
+                "BNE DECODE"
+            );
+
+            @(posedge clk);
+            check_controls(
+                BRANCH_TARGET_CONTROLS,
+                "BNE BRANCH_TARGET"
+            );
+
+            @(posedge clk);
+            check_controls(
+                BNE_BRANCH_COMPARE_CONTROLS,
+                "BNE BRANCH_COMPARE"
+            );
+
+            @(posedge clk);
+            check_controls(
+                FETCH_CONTROLS,
+                "BNE returns to FETCH"
+            );
         end
     endtask
 
@@ -516,7 +586,7 @@ module controller_tb;
             if (actual_controls !== FETCH_CONTROLS)
                 $fatal(
                     1,
-                    "FAIL: asynchronous reset | actual=%023b expected=%023b",
+                    "FAIL: asynchronous reset | actual=%024b expected=%024b",
                     actual_controls,
                     FETCH_CONTROLS
                 );
@@ -526,7 +596,7 @@ module controller_tb;
             if (actual_controls !== FETCH_CONTROLS)
                 $fatal(
                     1,
-                    "FAIL: reset did not hold FETCH | actual=%023b expected=%023b",
+                    "FAIL: reset did not hold FETCH | actual=%024b expected=%024b",
                     actual_controls,
                     FETCH_CONTROLS
                 );
@@ -559,10 +629,15 @@ module controller_tb;
                     endcase
                 end
 
-                //ADDI and BEQ
-                7'b0010011,
-                7'b1100011:
+                // ADDI
+                7'b0010011:
                     is_legal_encoding = (test_funct3 == 3'b000);
+
+                // Supported conditional branches
+                7'b1100011:
+                    is_legal_encoding =
+                        (test_funct3 == 3'b000) || // BEQ
+                        (test_funct3 == 3'b001);   // BNE
 
                 //LW and SW
                 7'b0000011,
@@ -580,7 +655,7 @@ module controller_tb;
     endfunction
 
     task automatic check_controls_quiet (
-        input logic [22:0] expected_controls,
+        input logic [23:0] expected_controls,
         input string test_stage
     );
         begin
@@ -590,7 +665,7 @@ module controller_tb;
                 $fatal(
                     1,
                     {"FAIL: %s | opcode=%07b funct3=%03b funct7=%07b ",
-                    "| actual=%023b expected=%023b"},
+                    "| actual=%024b expected=%024b"},
                     test_stage,
                     opcode,
                     funct3,
@@ -610,7 +685,7 @@ module controller_tb;
         integer illegal_count;
 
         logic expected_legal;
-        logic [22:0] expected_exec_controls;
+        logic [23:0] expected_exec_controls;
 
         begin
             legal_count = 0;
@@ -702,14 +777,14 @@ module controller_tb;
                 end
             end
 
-            if (legal_count != 1542)
+            if (legal_count != 1670)
                 $fatal(
                     1,
                     "Incorrect legal count: actual=%0d expected=1542",
                     legal_count
                 );
 
-            if (illegal_count != 129530)
+            if (illegal_count != 129402)
                 $fatal(
                     1,
                     "Incorrect illegal count: actual=%0d expected=129530",
@@ -830,6 +905,7 @@ module controller_tb;
         test_lw();
         test_sw();
         test_beq();
+        test_bne();
         test_jal();
         test_error_state();
     

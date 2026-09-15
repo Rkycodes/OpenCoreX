@@ -194,3 +194,17 @@
 - preserved the original processor specification as `docs/architecture-v0.1.md`
 - documented the multiplier architecture and research timing assumptions in `docs/scalar-mul-extension.md`
 
+## 2026-09-14
+- implemented BNE support using the existing branch target and sub paths
+- added `BranchInvert` so that the datapath can ocnditionally update the PC for either equal or unequal comparisons
+- reused the existing `BRANCH_TARGET` and `BRANCH_COMPARE` states without adding new FSM states
+- updated controller verification
+- verified all four BEQ and BNE outcomes
+- next: update dot-product program to use BNE and build its e2e testbench.
+
+## 2026-09-15
+- Expanded controller and datapath tests to cover taken and untaken `BEQ` and `BNE` cases.
+- Completed a 16-element signed dot product using scalar `MUL`, accumulating `ADD`, and a `BNE` loop.
+- Verified the expected result of `206` (`0x000000CE`) in both `x4` and memory address `0x180`.
+- Measured 135 instruction fetches, 16 executions each of `MUL`, `ADD`, and `BNE`, and 741 active cycles.
+- Added the benchmark to the automated regression; RTL lint and all 14 positive testbenches pass.

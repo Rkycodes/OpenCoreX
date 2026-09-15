@@ -1,0 +1,156 @@
+// OpenCoreX 16-element signed dot-product benchmark
+//
+// Computes:
+// result = sum(A[i] * B[i]) for i = 0 through 15
+//
+// Expected result:
+// decimal: 206
+// hex:     0x000000CE
+
+// Address 0x00: addi x1, x0, 256
+// x1 = byte address of vector A: 0x100
+10000093
+
+// Address 0x04: addi x2, x0, 320
+// x2 = byte address of vector B: 0x140
+14000113
+
+// Address 0x08: addi x3, x0, 16
+// x3 = number of elements remaining
+01000193
+
+// Address 0x0C: addi x4, x0, 0
+// x4 = accumulator
+00000213
+
+// LOOP
+// Address 0x10: lw x5, 0(x1)
+// Load current element from vector A.
+0000A283
+
+// Address 0x14: lw x6, 0(x2)
+// Load current element from vector B.
+00012303
+
+// Address 0x18: mul x7, x5, x6
+// Calculate the low 32 bits of A[i] * B[i].
+026283B3
+
+// Address 0x1C: add x4, x4, x7
+// Add the product to the accumulator.
+00720233
+
+// Address 0x20: addi x1, x1, 4
+// Advance the vector-A pointer by one word.
+00408093
+
+// Address 0x24: addi x2, x2, 4
+// Advance the vector-B pointer by one word.
+00410113
+
+// Address 0x28: addi x3, x3, -1
+// Decrement the number of elements remaining.
+FFF18193
+
+// Address 0x2C: bne x3, x0, -28
+// Continue looping while elements remain.
+// Target: 0x10; offset = 0x10 - 0x2C = -28 bytes.
+FE0192E3
+
+// DONE
+// Address 0x30: sw x4, 384(x0)
+// Store the dot-product result at byte address 0x180.
+18402023
+
+// Address 0x34: lw x31, 416(x0)
+// Load the RKYC completion signature from byte address 0x1A0.
+1A002F83
+
+// Address 0x38: sw x31, 444(x0)
+// Write the completion signature to byte address 0x1BC.
+1BF02E23
+
+// Address 0x3C: jal x0, 0
+// Safety loop if simulation continues after completion.
+0000006F
+
+// Vector A begins at word index 0x40.
+// Word index 0x40 corresponds to byte address 0x100.
+@40
+
+// A[0] = 1
+00000001
+// A[1] = -2
+FFFFFFFE
+// A[2] = 3
+00000003
+// A[3] = 4
+00000004
+// A[4] = -5
+FFFFFFFB
+// A[5] = 6
+00000006
+// A[6] = 0
+00000000
+// A[7] = 8
+00000008
+// A[8] = -9
+FFFFFFF7
+// A[9] = 10
+0000000A
+// A[10] = 11
+0000000B
+// A[11] = -12
+FFFFFFF4
+// A[12] = 13
+0000000D
+// A[13] = 14
+0000000E
+// A[14] = -15
+FFFFFFF1
+// A[15] = 16
+00000010
+
+// Vector B begins at word index 0x50.
+// Word index 0x50 corresponds to byte address 0x140.
+@50
+
+// B[0] = 16
+00000010
+// B[1] = 15
+0000000F
+// B[2] = -14
+FFFFFFF2
+// B[3] = 13
+0000000D
+// B[4] = 12
+0000000C
+// B[5] = -11
+FFFFFFF5
+// B[6] = 10
+0000000A
+// B[7] = 9
+00000009
+// B[8] = -8
+FFFFFFF8
+// B[9] = 7
+00000007
+// B[10] = 6
+00000006
+// B[11] = -5
+FFFFFFFB
+// B[12] = 4
+00000004
+// B[13] = -3
+FFFFFFFD
+// B[14] = 2
+00000002
+// B[15] = 1
+00000001
+
+// Completion signature source at word index 0x68.
+// Word index 0x68 corresponds to byte address 0x1A0.
+@68
+
+// ASCII "RKYC"
+524B5943

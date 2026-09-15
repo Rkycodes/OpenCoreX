@@ -9,6 +9,7 @@ module controller (
     //write enables
     output logic PCWrite,
     output logic PCWriteCond,
+    output logic BranchInvert,
     output logic IRWrite,
     output logic OldPCWrite,
     output logic PCPlus4Write,
@@ -162,11 +163,17 @@ always_comb begin
                 end
 
                 7'b1100011: begin
-                    //BEQ
-                    if(funct3 == 3'b000)
-                        next_state = BRANCH_TARGET;
-                    else
-                        next_state = ERROR;
+                    //supported b-type conditional branches
+                    case (funct3)
+                        3'b000, //BEQ
+                        3'b001: begin //BNE
+                            next_state = BRANCH_TARGET;
+                        end
+
+                        default: begin
+                            next_state = ERROR;
+                            end
+                    endcase
                 end
 
                 7'b1101111: begin
@@ -195,6 +202,7 @@ always_comb begin
     //disable all state-change controls by default
     PCWrite = 1'b0;
     PCWriteCond = 1'b0;
+    BranchInvert = 1'b0;
     IRWrite = 1'b0;
     OldPCWrite = 1'b0;
     PCPlus4Write = 1'b0;
@@ -294,9 +302,12 @@ always_comb begin
     //compare branch operands
     BRANCH_COMPARE: begin
         PCWriteCond = 1'b1;
-        ALUSrcA     = 2'b10;
-        ALUOp       = 2'b01;
-        PCSource    = 1'b1;
+        BranchInvert = (funct3 == 3'b001);
+
+        ALUSrcA     = 2'b10; //A
+        ALUSrcB     = 2'b00; //B
+        ALUOp       = 2'b01; //SUB
+        PCSource    = 1'b1; //Saved Target
     end
 
     //calculate jump target

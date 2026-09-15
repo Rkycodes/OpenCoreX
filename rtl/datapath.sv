@@ -5,6 +5,7 @@ module datapath (
     input logic reset,
     input logic PCWrite,
     input logic PCWriteCond,
+    input logic BranchInvert,
     input logic IRWrite,
     input logic OldPCWrite,
     input logic PCPlus4Write,
@@ -41,7 +42,7 @@ module datapath (
     logic [2:0] ALUControl;
 
     //3, 1 bit signal
-    logic Zero, PCEnable;
+    logic Zero, PCEnable, BranchCondition;
 
     /* verilator lint_off UNUSEDSIGNAL */
     logic ALUDecodeValid;
@@ -51,7 +52,11 @@ module datapath (
     assign funct3 = IR[14:12];
     assign funct7 = IR[31:25];
     assign mem_write_data = B;
-    assign PCEnable = PCWrite | (PCWriteCond & Zero);
+    //BEQ: BranchInvert = 0, so BranchCondition = Zero.
+    //BNE: BranchInvert = 1, so BranchCondition = !Zero
+    assign BranchCondition = Zero ^ BranchInvert;
+    assign PCEnable = PCWrite | (PCWriteCond & BranchCondition);
+
 
     immediate_generator immediate_generator_inst (
         .instruction(IR),

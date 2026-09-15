@@ -6,6 +6,7 @@ module datapath_tb;
     //controller to datapath signals
     logic PCWrite;
     logic PCWriteCond;
+    logic BranchInvert;
     logic IRWrite;
     logic OldPCWrite;
     logic PCPlus4Write;
@@ -41,6 +42,7 @@ module datapath_tb;
         .reset(reset),
         .PCWrite(PCWrite),
         .PCWriteCond(PCWriteCond),
+        .BranchInvert(BranchInvert),
         .IRWrite(IRWrite),
         .OldPCWrite(OldPCWrite),
         .PCPlus4Write(PCPlus4Write),
@@ -109,26 +111,27 @@ module datapath_tb;
 
     // Build a BEQ instruction The immediate input already includes the
     // required low zero bit and is rearranged into the RISC-V B-type fields
-    function automatic logic [31:0] encode_beq (
+    function automatic logic [31:0] encode_branch (
         input logic [4:0]  rs1,
         input logic [4:0]  rs2,
+        input logic [2:0]  funct3_value,
         input logic [12:0] immediate_value
     );
         begin
-            //branch targets are two byte aligned, so bit zero must be zero
             if (immediate_value[0] !== 1'b0) begin
                 $fatal(
                     1,
-                    "BEQ test immediate must be two-byte aligned: immediate=%0d",
+                    "Branch immediate must be two-byte aligned: immediate=%0d",
                     $signed(immediate_value)
                 );
             end
-            encode_beq = {
+
+            encode_branch = {
                 immediate_value[12],
                 immediate_value[10:5],
                 rs2,
                 rs1,
-                3'b000,
+                funct3_value,
                 immediate_value[4:1],
                 immediate_value[11],
                 7'b1100011
@@ -142,6 +145,7 @@ module datapath_tb;
         begin
             PCWrite         = 1'b0;
             PCWriteCond     = 1'b0;
+            BranchInvert    = 1'b0;
             IRWrite         = 1'b0;
             OldPCWrite      = 1'b0;
             PCPlus4Write    = 1'b0;
@@ -365,7 +369,7 @@ module datapath_tb;
 
         // DECODE for BEQ x5,x6,+16: capture both operands while the ALU uses
         // OldPC and the generated immediate to store the branch target
-        instruction = encode_beq(5'd5, 5'd6, 13'd16);
+        instruction = encode_branch(5'd5, 5'd6, 3'b000, 13'd16);
         capture_instruction(instruction);
 
         @(negedge clk);
@@ -402,6 +406,7 @@ module datapath_tb;
 
         check_32(dut.ALUResult, 32'b0, "equal branch operands subtract to zero");
         check_1(dut.Zero,     1'b1, "equal branch operands assert Zero");
+        check_1(dut.BranchCondition, 1'b1, "BEQ equal condition is true");
         check_1(dut.PCEnable, 1'b1, "taken branch enables PC");
         check_32(dut.NextPC, 32'd16, "taken branch selects saved target");
 
@@ -412,7 +417,7 @@ module datapath_tb;
         // Change x6 and repeat with a +32 target. A-B is now nonzero, so the
         //conditional write must leave PC at 16 even though NextPC is 32.
         write_register_from_mdr(5'd6, 32'd9);
-        instruction = encode_beq(5'd5, 5'd6, 13'd32);
+        instruction = encode_branch(5'd5, 5'd6,3'b000, 13'd32);
         capture_instruction(instruction);
 
         @(negedge clk);
@@ -439,8 +444,9 @@ module datapath_tb;
         PCWriteCond = 1'b1;
         #1;
 
-        check_1(dut.Zero,     1'b0, "unequal branch operands clear Zero");
-        check_1(dut.PCEnable, 1'b0, "untaken branch disables PC");
+        check_1(dut.Zero,            1'b0, "unequal branch operands clear Zero");
+        check_1(dut.BranchCondition, 1'b0, "BEQ unequal condition is false");
+        check_1(dut.PCEnable,        1'b0, "untaken branch disables PC");
         check_32(dut.NextPC, 32'd32, "untaken branch target remains combinationally available");
 
         @(posedge clk);
@@ -457,6 +463,103 @@ module datapath_tb;
         #1;
         check_32(mem_addr, 32'd32, "memory address mux selects ALUOut");
         check_32(mem_write_data, 32'd9, "store-data output remains B");
+        // BNE equal/not-taken test
+        // BNE, not taken: equal operands produce Zero=1, but BranchInvert
+        // changes the final branch condition to false.
+        write_register_from_mdr(5'd6, 32'd7);
+
+        instruction = encode_branch(
+            5'd5,
+            5'd6,
+            3'b001, // BNE
+            13'd48
+        );
+        capture_instruction(instruction);
+
+        @(negedge clk);
+        clear_controls();
+        AWrite      = 1'b1;
+        BWrite      = 1'b1;
+        ALUOutWrite = 1'b1;
+        ALUSrcA     = 2'b01; // OldPC
+        ALUSrcB     = 2'b10; // Immediate
+        ALUOp       = 2'b00; // ADD branch target
+
+        @(posedge clk);
+        #1;
+
+        check_32(dut.A,      32'd7,  "BNE equal captures rs1");
+        check_32(dut.B,      32'd7,  "BNE equal captures rs2");
+        check_32(dut.ALUOut, 32'd48, "BNE equal saves branch target");
+
+        @(negedge clk);
+        clear_controls();
+        PCWriteCond = 1'b1;
+        BranchInvert = 1'b1;
+        ALUSrcA     = 2'b10; // A
+        ALUSrcB     = 2'b00; // B
+        ALUOp       = 2'b01; // SUB
+        PCSource    = 1'b1;  // ALUOut
+        #1;
+
+        check_1(dut.Zero,            1'b1, "BNE equal operands assert Zero");
+        check_1(dut.BranchCondition, 1'b0, "BNE equal condition is false");
+        check_1(dut.PCEnable,        1'b0, "BNE equal does not enable PC");
+
+        @(posedge clk);
+        #1;
+
+        check_32(dut.PC, 32'd16, "BNE equal preserves PC");
+
+
+        // BNE unequal/taken test
+        // BNE, taken: unequal operands produce Zero=0, and BranchInvert
+        // changes the final branch condition to true.
+        write_register_from_mdr(5'd6, 32'd9);
+
+        instruction = encode_branch(
+            5'd5,
+            5'd6,
+            3'b001, // BNE
+            13'd64
+        );
+        capture_instruction(instruction);
+
+        @(negedge clk);
+        clear_controls();
+        AWrite      = 1'b1;
+        BWrite      = 1'b1;
+        ALUOutWrite = 1'b1;
+        ALUSrcA     = 2'b01;
+        ALUSrcB     = 2'b10;
+        ALUOp       = 2'b00;
+
+        @(posedge clk);
+        #1;
+
+        check_32(dut.A,      32'd7,  "BNE unequal captures rs1");
+        check_32(dut.B,      32'd9,  "BNE unequal captures rs2");
+        check_32(dut.ALUOut, 32'd64, "BNE unequal saves branch target");
+
+        @(negedge clk);
+        clear_controls();
+        PCWriteCond  = 1'b1;
+        BranchInvert = 1'b1;
+        ALUSrcA      = 2'b10;
+        ALUSrcB      = 2'b00;
+        ALUOp        = 2'b01;
+        PCSource     = 1'b1;
+        #1;
+
+        check_1(dut.Zero,            1'b0, "BNE unequal operands clear Zero");
+        check_1(dut.BranchCondition, 1'b1, "BNE unequal condition is true");
+        check_1(dut.PCEnable,        1'b1, "BNE unequal enables PC");
+        check_32(dut.NextPC,        32'd64, "BNE selects saved target");
+
+        @(posedge clk);
+        #1;
+
+        check_32(dut.PC, 32'd64, "BNE unequal updates PC to target");
 
         // R-type ADD x7,x5,x6: capture operands, execute into ALUOut, then use
         //WriteBackSelect=00 to write the saved result into rd

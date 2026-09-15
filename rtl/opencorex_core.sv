@@ -12,6 +12,7 @@ module opencorex_core (
     //Controller to datapath WE
     logic PCWrite;
     logic PCWriteCond;
+    logic BranchInvert;
     logic IRWrite;
     logic OldPCWrite;
     logic PCPlus4Write;
@@ -43,6 +44,7 @@ module opencorex_core (
 
         .PCWrite(PCWrite),
         .PCWriteCond(PCWriteCond),
+        .BranchInvert(BranchInvert),
         .IRWrite(IRWrite),
         .OldPCWrite(OldPCWrite),
         .PCPlus4Write(PCPlus4Write),
@@ -71,6 +73,7 @@ module opencorex_core (
 
         .PCWrite(PCWrite),
         .PCWriteCond(PCWriteCond),
+        .BranchInvert(BranchInvert),
         .IRWrite(IRWrite),
         .OldPCWrite(OldPCWrite),
         .PCPlus4Write(PCPlus4Write),

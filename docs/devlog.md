@@ -208,3 +208,17 @@
 - Verified the expected result of `206` (`0x000000CE`) in both `x4` and memory address `0x180`.
 - Measured 135 instruction fetches, 16 executions each of `MUL`, `ADD`, and `BNE`, and 741 active cycles.
 - Added the benchmark to the automated regression; RTL lint and all 14 positive testbenches pass.
+
+## 2026-09-17
+
+Completed the first CPU-only matrix-vector benchmark for the OpenCoreX study.
+
+- added a deterministic mixed-sign 1x16 by 16x32 matrix vector workload: `y[j] = sum(x[i] * W[i][j])`.
+- added an instruction-encoding generator that produces the executable memory image an an independently calculated 32-word software reference.
+- Made the memory layout explicit: vector at `0x100`, column-major matrix at `0x140`, outputs at `0x940`, RKYC signature source at `0x9C0`, and completion destination at `0x9C4`.
+- Added a dedicated self-checking testbench that verified outputs, final architectural state, input immutability, operation counts, and the completion write.
+- Full regression passes. The test completes in 23,685 active cycles with 512 MUL ops, 512 accumulating ADD ops, 1024 kernel data reads, and 32 result writes
+
+Key Observation: the CPU rereads the same 16-word vector once per output column, creating 512 vector-memory reads. The next research phase will study coordination and data movement required to reduce traffic by moving suitable/appropriate work closer to memory.
+
+

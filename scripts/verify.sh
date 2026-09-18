@@ -22,6 +22,7 @@ readonly -a POSITIVE_TESTS=(
     opencorex_core_tb
     opencorex_mul_tb
     opencorex_dot_product_tb
+    opencorex_matvec_tb
     opencorex_corner_cases_tb
     opencorex_illegal_tb
     opencorex_reset_tb

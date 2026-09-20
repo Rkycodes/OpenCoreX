@@ -127,6 +127,36 @@ The CPU reads only 16 unique vector words, but rereads them 32 times for a
 total of 512 vector-memory reads. That reuse is a concrete data-movement
 opportunity for the future accelerator/PIM study.
 
+### Derived Performance Metrics
+
+| Metric | Calculation | Result |
+|---|---:|---:|
+| Cycles per output/dot product | `23685 / 32` | 740.156 |
+| Instructions per output | `4327 / 32` | 135.219 |
+| Cycles per multiply-accumulate pair | `23685 / 512` | 46.260 |
+| Average cycles per instruction | `23685 / 4327` | 5.474 |
+| Kernel data reads | `512 + 512` | 1024 words |
+| Kernel data writes | `32` | 32 words |
+| Kernel data traffic | `(1024 + 32) × 4` | 4224 bytes |
+| Completion-protocol traffic | `(1 signature read + 1 completion write) × 4` | 8 bytes |
+| Total data traffic through completion | `4224 + 8` | 4232 bytes |
+| Instruction-fetch traffic | `4327 × 4` | 17308 bytes |
+| Unified instruction and data traffic | `17308 + 4232` | 21540 bytes |
+| Unique workload data footprint | `(16 + 512 + 32) × 4` | 2240 bytes |
+| Redundant vector reads | `512 - 16` | 496 words / 1984 bytes |
+| Kernel-read reduction if the vector is fetched once | `496 / 1024` | 48.438% |
+
+Each output is one 16-element dot product, so cycles per output and cycles
+per dot product are the same for this benchmark.
+
+A multiply-accumulate pair means one scalar `MUL` followed by the corresponding
+scalar accumulator `ADD`. OpenCoreX currently implements these as two separate
+instructions, not as one fused multiply-accumulate instruction.
+
+The traffic figures count transactions observed at the unified CPU memory
+interface. Testbench reads used to inspect final memory contents are verification
+activity and are not counted as processor-generated memory traffic.
+
 ## Reproduction
 
 ```bash

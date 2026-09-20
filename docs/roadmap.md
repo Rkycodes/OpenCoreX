@@ -45,16 +45,16 @@ The next phase of OpenCoreX is benchmark-driven PIM research rather than complet
 
 Goal: establish a correct and measurable scalar baseline for the exact workload that the PIM unit will accelerate.
 
-- [ ] Define the scalar algorithm and memory layout for `1 x 16` by `16 x 32` matrix-vector multiplication
-- [ ] Determine the minimum benchmark-driven ISA additions
+- [x] Define the scalar algorithm and memory layout for `1 x 16` by `16 x 32` matrix-vector multiplication
+- [x] Determine the minimum benchmark-driven ISA additions
 - [x] Implement and verify scalar `MUL`
-- [ ] Add loop/branch control instructions only if they materially simplify the benchmark
-- [ ] Write and verify the CPU-only matrix-vector benchmark
-- [ ] Verify all 32 output values against a software reference
-- [ ] Instrument total cycles
-- [ ] Instrument or derive instruction count
-- [ ] Record loads, stores, multiplies, additions, and total memory traffic
-- [ ] Establish cycles per output and cycles per dot product
+- [x] Add loop/branch control instructions only if they materially simplify the benchmark
+- [x] Write and verify the CPU-only matrix-vector benchmark
+- [x] Verify all 32 output values against a software reference
+- [x] Instrument total cycles
+- [x] Instrument or derive instruction count
+- [x] Record loads, stores, multiplies, additions, and total memory traffic
+- [x] Establish cycles per output and cycles per dot product
 
 ## Research Milestone 2 — PIM Architecture and ISA
 

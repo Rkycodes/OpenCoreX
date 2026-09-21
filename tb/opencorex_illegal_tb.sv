@@ -6,22 +6,55 @@ module opencorex_illegal_tb;
     logic clk;
     logic reset;
 
-    logic [31:0] mem_addr;
-    logic [31:0] mem_read_data;
-    logic [31:0] mem_write_data;
-    logic mem_read;
-    logic mem_write;
-    logic error;
+    logic        mem_req_valid;
+    logic        mem_req_ready;
+    logic        mem_req_write;
+    logic [31:0] mem_req_addr;
+    logic [31:0] mem_req_wdata;
+    logic        mem_rsp_valid;
+    logic [31:0] mem_rsp_rdata;
+
+    logic        memory_read_enable;
+    logic        memory_write_enable;
+    logic [31:0] memory_address;
+    logic [31:0] memory_write_data;
+    logic [31:0] memory_read_data;
+    logic        error;
 
     opencorex_core dut (
-        .clk(clk),
-        .reset(reset),
-        .mem_read_data(mem_read_data),
-        .mem_addr(mem_addr),
-        .mem_write_data(mem_write_data),
-        .mem_read(mem_read),
-        .mem_write(mem_write),
-        .error(error)
+        .clk           (clk),
+        .reset         (reset),
+
+        .mem_req_valid (mem_req_valid),
+        .mem_req_ready (mem_req_ready),
+        .mem_req_write (mem_req_write),
+        .mem_req_addr  (mem_req_addr),
+        .mem_req_wdata (mem_req_wdata),
+
+        .mem_rsp_valid (mem_rsp_valid),
+        .mem_rsp_rdata (mem_rsp_rdata),
+
+        .error         (error)
+    );
+
+    synchronous_memory_adapter memory_adapter (
+        .clk                 (clk),
+        .reset               (reset),
+
+        .req_valid           (mem_req_valid),
+        .req_ready           (mem_req_ready),
+        .req_write           (mem_req_write),
+        .req_addr            (mem_req_addr),
+        .req_wdata           (mem_req_wdata),
+
+        .rsp_valid           (mem_rsp_valid),
+        .rsp_rdata           (mem_rsp_rdata),
+
+        .memory_read_enable  (memory_read_enable),
+        .memory_write_enable (memory_write_enable),
+        .memory_address      (memory_address),
+        .memory_write_data   (memory_write_data),
+        .memory_read_data    (memory_read_data)
     );
 
     memory #(
@@ -29,11 +62,11 @@ module opencorex_illegal_tb;
         .INIT_FILE("programs/hex/illegal_instruction.hex")
     ) test_memory (
         .clk(clk),
-        .read_enable(mem_read),
-        .write_enable(mem_write),
-        .address(mem_addr),
-        .write_data(mem_write_data),
-        .read_data(mem_read_data)
+        .read_enable(memory_read_enable),
+        .write_enable(memory_write_enable),
+        .address(memory_address),
+        .write_data(memory_write_data),
+        .read_data(memory_read_data)
     );
 
     task automatic check_register (
@@ -92,7 +125,7 @@ module opencorex_illegal_tb;
 
             if (error === 1'b1) begin
                 saw_error = 1'b1;
-                frozen_mem_addr = mem_addr;
+                frozen_mem_addr = memory_address;
 
                 $display(
                     "PASS: illegal instruction entered ERROR at cycle %0d",
@@ -157,20 +190,27 @@ module opencorex_illegal_tb;
                 );
             end
 
-            if (mem_read !== 1'b0 || mem_write !== 1'b0) begin
+            if (memory_read_enable !== 1'b0 || memory_write_enable !== 1'b0) begin
                 $fatal(
                     1,
                     "FAIL: memory activity occurred in ERROR | read=%b write=%b",
-                    mem_read,
-                    mem_write
+                    memory_read_enable,
+                    memory_write_enable
                 );
             end
 
-            if (mem_addr !== frozen_mem_addr) begin
+            if (mem_req_valid !== 1'b0) begin
+                $fatal(
+                    1,
+                    "FAIL: core continued requesting memory in ERROR"
+                );
+            end
+
+            if (memory_address !== frozen_mem_addr) begin
                 $fatal(
                     1,
                     "FAIL: PC-derived memory address changed in ERROR | actual=%08h expected=%08h",
-                    mem_addr,
+                    memory_address,
                     frozen_mem_addr
                 );
             end

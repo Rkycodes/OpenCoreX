@@ -60,15 +60,37 @@ Goal: establish a correct and measurable scalar baseline for the exact workload 
 
 Goal: define the CPU-to-PIM contract before writing integrated PIM RTL.
 
-- [ ] Select a custom opcode/funct encoding
+### Phase 1 — Shared-memory transport
+
+- [x] Define CPU and PIM request/response channel semantics
+- [x] Add requester-local `valid`/`ready` backpressure
+- [x] Implement two-requester round-robin memory arbitration
+- [x] Lock the selected requester while downstream memory is stalled
+- [x] Route fixed-latency read responses to the requesting owner
+- [x] Adapt the existing synchronous RAM to the handshake interface
+- [x] Migrate CPU fetches, loads, and stores to the handshake interface
+- [x] Keep physical RAM external to the CPU/PIM subsystem wrapper
+- [x] Define interface-reset behavior and preserve RAM across reset
+- [x] Verify CPU/PIM contention and CPU request stability during stalls
+- [x] Verify that an idle PIM requester adds no matrix-vector baseline cycles
+- [x] Document the Phase 1 shared-memory interface and limitations
+
+### Phase 2 — PIM command and software contract
+
+- [ ] Select memory-mapped registers, a descriptor pointer, custom instructions, or a defined combination
+- [ ] Select a custom opcode/funct encoding if custom instructions are used
 - [ ] Define the first coarse-grained PIM command semantics
-- [ ] Define how source operands and addresses are supplied
-- [ ] Define destination/result placement
-- [ ] Define `start`, `busy`, and `done` protocol timing
-- [ ] Define CPU behavior while a PIM operation is active
-- [ ] Define memory ownership and arbitration between CPU and PIM
+- [ ] Define how source, weight, destination, and configuration operands are supplied
+- [ ] Define destination and result placement
+- [ ] Define `start`, `busy`, `done`, and `error` timing
+- [ ] Define CPU behavior while a complete PIM operation is active
+- [ ] Define how software prevents access to incomplete PIM results
+- [ ] Define software-visible memory-region ownership
 - [ ] Define architectural state visible to software
-- [ ] Define error and reset behavior for an in-flight PIM operation
+- [ ] Define polling behavior and the path toward interrupt-driven completion
+- [ ] Define reset behavior for an in-flight PIM operation
+- [ ] Decide whether the command layer supports only one outstanding operation
+- [ ] Define the changes required for variable-latency memory
 
 ## Research Milestone 3 — Functional PIM RTL
 

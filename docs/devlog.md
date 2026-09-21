@@ -221,4 +221,31 @@ Completed the first CPU-only matrix-vector benchmark for the OpenCoreX study.
 
 Key Observation: the CPU rereads the same 16-word vector once per output column, creating 512 vector-memory reads. The next research phase will study coordination and data movement required to reduce traffic by moving suitable/appropriate work closer to memory.
 
+## 2026-09-19
+- Calculated Derived metrics from CPU dot product experiment including:
+  - Cycles per output
+  - cycles per MAC
+  - Average CPI
+  - Instructions per putput
+  - kernel data
+  - total data traffic
+  - instruction + data memory
+  - unique workload
+  - Redundant vector traffic
+- Began to draft custom RISC-V instruction(s) for PiM block
+- Defined PiM block reset behavior
+- Working on memory ownership and arbitration for single-port synchronous unified memory between CPU and nonblocking PiM.
+- Working on system block diagrams to get feedback from Prof. Yang on.
 
+## 2026-09-20
+- Added a two-requester shared-memory interconnect for the CPU and future PIM engine.
+- Added ready/valid request handshakes so arbitration and downstream backpressure can stall either requester safely.
+- Implemented round-robin contention handling with grant locking while the selected request is stalled.
+- Added read-response ownership tracking so synchronous memory responses return to the requester that issued the read.
+- Added a synchronous-memory adapter with fixed one-cycle read responses and handshake-qualified memory enables.
+- Migrated the CPU controller from the legacy direct-memory interface to request, acceptance, and response phases.
+- Added `FETCH_CAPTURE` and `MEM_READ_CAPTURE` states so instruction and load data are written only when `mem_rsp_valid` is asserted.
+- Added the integrated `opencorex_memory_subsystem` wrapper while keeping the physical RAM external.
+- Verified CPU/PIM contention, backpressure, response routing, reset behavior, and preservation of RAM contents across reset.
+- Verified that the inactive-PIM subsystem preserves the CPU matrix-vector baseline of 23,685 active cycles and 4,327 instruction fetches.
+- Expanded the regression suite to 20 positive testbenches plus three expected-failure memory tests.

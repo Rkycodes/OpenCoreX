@@ -19,6 +19,9 @@ readonly -a POSITIVE_TESTS=(
     memory_init_tb
     memory_tb
     register_file_tb
+    memory_interconnect_tb
+    synchronous_memory_adapter_tb
+    memory_subsystem_tb
     opencorex_core_tb
     opencorex_mul_tb
     opencorex_dot_product_tb
@@ -26,6 +29,8 @@ readonly -a POSITIVE_TESTS=(
     opencorex_corner_cases_tb
     opencorex_illegal_tb
     opencorex_reset_tb
+    opencorex_memory_subsystem_tb
+    opencorex_matvec_subsystem_tb
 )
 
 cd "$REPO_ROOT"
@@ -72,6 +77,33 @@ run_lint() {
     verilator --lint-only -Wall \
         --top-module memory \
         rtl/memory.sv
+
+    print_section "Memory interconnect RTL lint"
+
+    verilator --lint-only -Wall \
+        --top-module memory_interconnect \
+        rtl/memory_interconnect.sv
+
+    print_section "Synchronous memory adapter RTL lint"
+
+    verilator --lint-only -Wall \
+        --top-module synchronous_memory_adapter \
+        rtl/synchronous_memory_adapter.sv
+
+    print_section "OpenCoreX memory subsystem RTL lint"
+
+    verilator --lint-only -Wall \
+        --top-module opencorex_memory_subsystem \
+        rtl/alu.sv \
+        rtl/alu_decoder.sv \
+        rtl/controller.sv \
+        rtl/datapath.sv \
+        rtl/immediate_generator.sv \
+        rtl/memory_interconnect.sv \
+        rtl/opencorex_core.sv \
+        rtl/opencorex_memory_subsystem.sv \
+        rtl/register_file.sv \
+        rtl/synchronous_memory_adapter.sv
 
     printf '\nPASS: RTL lint completed\n'
 }

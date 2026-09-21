@@ -4,24 +4,31 @@ module opencorex_dot_product_tb;
 
     localparam logic [31:0] RESULT_ADDR     = 32'h0000_0180;
     localparam logic [31:0] EXPECTED_RESULT = 32'h0000_00CE;
+    localparam logic [31:0] SIGNATURE_ADDR  = 32'h0000_01A0;
+    localparam logic [31:0] DONE_ADDR       = 32'h0000_01BC;
+    localparam logic [31:0] DONE_VALUE      = 32'h524B_5943;
+    localparam logic [31:0] VECTOR_A_START  = 32'h0000_0100;
+    localparam logic [31:0] VECTOR_A_END    = 32'h0000_013C;
+    localparam logic [31:0] VECTOR_B_START  = 32'h0000_0140;
+    localparam logic [31:0] VECTOR_B_END    = 32'h0000_017C;
 
-    localparam logic [31:0] SIGNATURE_ADDR = 32'h0000_01A0;
-    localparam logic [31:0] DONE_ADDR      = 32'h0000_01BC;
-    localparam logic [31:0] DONE_VALUE     = 32'h524B_5943;
-
-    localparam logic [31:0] VECTOR_A_START = 32'h0000_0100;
-    localparam logic [31:0] VECTOR_A_END   = 32'h0000_013C;
-    localparam logic [31:0] VECTOR_B_START = 32'h0000_0140;
-    localparam logic [31:0] VECTOR_B_END   = 32'h0000_017C;
     logic clk;
     logic reset;
 
-    logic [31:0] mem_addr;
-    logic [31:0] mem_read_data;
-    logic [31:0] mem_write_data;
-    logic mem_read;
-    logic mem_write;
-    logic error;
+    logic        mem_req_valid;
+    logic        mem_req_ready;
+    logic        mem_req_write;
+    logic [31:0] mem_req_addr;
+    logic [31:0] mem_req_wdata;
+    logic        mem_rsp_valid;
+    logic [31:0] mem_rsp_rdata;
+
+    logic        memory_read_enable;
+    logic        memory_write_enable;
+    logic [31:0] memory_address;
+    logic [31:0] memory_write_data;
+    logic [31:0] memory_read_data;
+    logic        error;
 
     int unsigned instruction_fetches;
     int unsigned vector_a_reads;
@@ -29,32 +36,56 @@ module opencorex_dot_product_tb;
     int unsigned signature_reads;
     int unsigned result_writes;
     int unsigned completion_writes;
-
     int unsigned mul_fetches;
     int unsigned add_fetches;
     int unsigned bne_fetches;
 
     opencorex_core dut (
-        .clk(clk),
-        .reset(reset),
-        .mem_read_data(mem_read_data),
-        .mem_addr(mem_addr),
-        .mem_write_data(mem_write_data),
-        .mem_read(mem_read),
-        .mem_write(mem_write),
-        .error(error)
+        .clk           (clk),
+        .reset         (reset),
+
+        .mem_req_valid (mem_req_valid),
+        .mem_req_ready (mem_req_ready),
+        .mem_req_write (mem_req_write),
+        .mem_req_addr  (mem_req_addr),
+        .mem_req_wdata (mem_req_wdata),
+
+        .mem_rsp_valid (mem_rsp_valid),
+        .mem_rsp_rdata (mem_rsp_rdata),
+
+        .error         (error)
+    );
+
+    synchronous_memory_adapter memory_adapter (
+        .clk                 (clk),
+        .reset               (reset),
+
+        .req_valid           (mem_req_valid),
+        .req_ready           (mem_req_ready),
+        .req_write           (mem_req_write),
+        .req_addr            (mem_req_addr),
+        .req_wdata           (mem_req_wdata),
+
+        .rsp_valid           (mem_rsp_valid),
+        .rsp_rdata           (mem_rsp_rdata),
+
+        .memory_read_enable  (memory_read_enable),
+        .memory_write_enable (memory_write_enable),
+        .memory_address      (memory_address),
+        .memory_write_data   (memory_write_data),
+        .memory_read_data    (memory_read_data)
     );
 
     memory #(
-        .WORDS(1024),
-        .INIT_FILE("programs/hex/dot_product_16.hex")
+        .WORDS     (1024),
+        .INIT_FILE ("programs/hex/dot_product_16.hex")
     ) test_memory (
-        .clk(clk),
-        .read_enable(mem_read),
-        .write_enable(mem_write),
-        .address(mem_addr),
-        .write_data(mem_write_data),
-        .read_data(mem_read_data)
+        .clk          (clk),
+        .read_enable  (memory_read_enable),
+        .write_enable (memory_write_enable),
+        .address      (memory_address),
+        .write_data   (memory_write_data),
+        .read_data    (memory_read_data)
     );
 
     task automatic check_register (
@@ -63,7 +94,6 @@ module opencorex_dot_product_tb;
         input string test_name
     );
         logic [31:0] actual;
-
         begin
             actual = dut.datapath_inst
                         .register_file_inst
@@ -105,11 +135,7 @@ module opencorex_dot_product_tb;
                 );
             end
 
-            $display(
-                "PASS: %s | count=%0d",
-                test_name,
-                actual
-            );
+            $display("PASS: %s | count=%0d", test_name, actual);
         end
     endtask
 
@@ -118,7 +144,7 @@ module opencorex_dot_product_tb;
         forever #5 clk = ~clk;
     end
 
-        initial begin : run_test
+    initial begin : run_test
         instruction_fetches = 0;
         vector_a_reads = 0;
         vector_b_reads = 0;
@@ -130,15 +156,12 @@ module opencorex_dot_product_tb;
         bne_fetches = 0;
         reset = 1'b1;
 
-        // Hold reset through two active clock edges.
         repeat (2) @(posedge clk);
 
-        // Release reset away from the active edge.
         @(negedge clk);
         reset = 1'b0;
 
         for (int cycle = 0; cycle < MAX_CYCLES; cycle++) begin
-            // Sample the transaction accepted by memory on this edge.
             @(posedge clk);
 
             if (error !== 1'b0) begin
@@ -149,49 +172,47 @@ module opencorex_dot_product_tb;
                 );
             end
 
-            if (mem_read && mem_write) begin
+            if (memory_read_enable && memory_write_enable) begin
                 $fatal(
                     1,
-                    "FAIL: mem_read and mem_write asserted together at cycle %0d",
+                    "FAIL: physical read and write asserted together at cycle %0d",
                     cycle
                 );
             end
 
-            if ((mem_read || mem_write) &&
-                (mem_addr[1:0] != 2'b00)) begin
+            if ((memory_read_enable || memory_write_enable) &&
+                (memory_address[1:0] != 2'b00)) begin
                 $fatal(
                     1,
                     "FAIL: misaligned memory access at cycle %0d address=%08h",
                     cycle,
-                    mem_addr
+                    memory_address
                 );
             end
 
-                        // Classify every accepted memory-read transaction.
-            if (mem_read) begin
-                // Program instructions occupy byte addresses 0x00 through 0x3C.
-                if (mem_addr <= 32'h0000_003C) begin
+            // Count accepted physical reads, not cycles where a request may
+            // merely remain valid under backpressure.
+            if (memory_read_enable) begin
+                if (memory_address <= 32'h0000_003C) begin
                     instruction_fetches++;
 
-                    // Count benchmark operations by their fixed instruction addresses.
-                    case (mem_addr)
+                    case (memory_address)
                         32'h0000_0018: mul_fetches++;
                         32'h0000_001C: add_fetches++;
                         32'h0000_002C: bne_fetches++;
                         default: begin
-                            // Other legal instruction fetches need no individual count.
                         end
                     endcase
                 end
-                else if ((mem_addr >= VECTOR_A_START) &&
-                        (mem_addr <= VECTOR_A_END)) begin
+                else if ((memory_address >= VECTOR_A_START) &&
+                         (memory_address <= VECTOR_A_END)) begin
                     vector_a_reads++;
                 end
-                else if ((mem_addr >= VECTOR_B_START) &&
-                        (mem_addr <= VECTOR_B_END)) begin
+                else if ((memory_address >= VECTOR_B_START) &&
+                         (memory_address <= VECTOR_B_END)) begin
                     vector_b_reads++;
                 end
-                else if (mem_addr == SIGNATURE_ADDR) begin
+                else if (memory_address == SIGNATURE_ADDR) begin
                     signature_reads++;
                 end
                 else begin
@@ -199,22 +220,21 @@ module opencorex_dot_product_tb;
                         1,
                         "FAIL: unexpected memory read at cycle %0d address=%08h",
                         cycle,
-                        mem_addr
+                        memory_address
                     );
                 end
             end
 
-            // Classify every accepted memory-write transaction.
-            if (mem_write) begin
-                case (mem_addr)
+            if (memory_write_enable) begin
+                case (memory_address)
                     RESULT_ADDR: begin
                         result_writes++;
 
-                        if (mem_write_data !== EXPECTED_RESULT) begin
+                        if (memory_write_data !== EXPECTED_RESULT) begin
                             $fatal(
                                 1,
                                 "FAIL: incorrect result store | actual=%08h expected=%08h",
-                                mem_write_data,
+                                memory_write_data,
                                 EXPECTED_RESULT
                             );
                         end
@@ -229,27 +249,25 @@ module opencorex_dot_product_tb;
                             1,
                             "FAIL: unexpected memory write at cycle %0d address=%08h data=%08h",
                             cycle,
-                            mem_addr,
-                            mem_write_data
+                            memory_address,
+                            memory_write_data
                         );
                     end
                 endcase
             end
 
-            if (mem_write && mem_addr == DONE_ADDR) begin
-                if (mem_write_data !== DONE_VALUE) begin
+            if (memory_write_enable && (memory_address == DONE_ADDR)) begin
+                if (memory_write_data !== DONE_VALUE) begin
                     $fatal(
                         1,
                         "FAIL: incorrect completion value | actual=%08h expected=%08h",
-                        mem_write_data,
+                        memory_write_data,
                         DONE_VALUE
                     );
                 end
 
-                // Allow the synchronous completion write to commit to memory.
                 @(negedge clk);
 
-                // Verify the architectural register state after all 16 iterations.
                 check_register(1,  32'h0000_0140, "final vector-A pointer");
                 check_register(2,  32'h0000_0180, "final vector-B pointer");
                 check_register(3,  32'h0000_0000, "final loop count");
@@ -259,7 +277,6 @@ module opencorex_dot_product_tb;
                 check_register(7,  32'h0000_0010, "final multiplication result");
                 check_register(31, DONE_VALUE,     "completion signature");
 
-                // Byte address 0x180 corresponds to memory word index 0x60 = 96.
                 if (test_memory.mem[96] !== EXPECTED_RESULT) begin
                     $fatal(
                         1,
@@ -274,8 +291,6 @@ module opencorex_dot_product_tb;
                     test_memory.mem[96]
                 );
 
-                // The completion write targets byte address 0x1BC,
-                // corresponding to word index 0x6F = 111.
                 if (test_memory.mem[111] !== DONE_VALUE) begin
                     $fatal(
                         1,
@@ -290,7 +305,6 @@ module opencorex_dot_product_tb;
                     test_memory.mem[111]
                 );
 
-                // Verify the benchmark's dynamic operation and memory-access counts.
                 check_count(instruction_fetches, 135, "instruction fetches");
                 check_count(vector_a_reads,       16, "vector-A reads");
                 check_count(vector_b_reads,       16, "vector-B reads");
@@ -301,8 +315,6 @@ module opencorex_dot_product_tb;
                 check_count(add_fetches,          16, "accumulating ADD executions");
                 check_count(bne_fetches,          16, "BNE executions");
 
-                // The zero-based cycle index should be 740, representing 741
-                // active processor cycles after reset release.
                 if (cycle != 740) begin
                     $fatal(
                         1,

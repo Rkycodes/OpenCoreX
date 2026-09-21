@@ -7,22 +7,55 @@ module opencorex_corner_cases_tb;
     logic clk;
     logic reset;
 
-    logic [31:0] mem_addr;
-    logic [31:0] mem_read_data;
-    logic [31:0] mem_write_data;
-    logic mem_read;
-    logic mem_write;
-    logic error;
+    logic        mem_req_valid;
+    logic        mem_req_ready;
+    logic        mem_req_write;
+    logic [31:0] mem_req_addr;
+    logic [31:0] mem_req_wdata;
+    logic        mem_rsp_valid;
+    logic [31:0] mem_rsp_rdata;
+
+    logic        memory_read_enable;
+    logic        memory_write_enable;
+    logic [31:0] memory_address;
+    logic [31:0] memory_write_data;
+    logic [31:0] memory_read_data;
+    logic        error;
 
     opencorex_core dut (
-        .clk(clk),
-        .reset(reset),
-        .mem_read_data(mem_read_data),
-        .mem_addr(mem_addr),
-        .mem_write_data(mem_write_data),
-        .mem_read(mem_read),
-        .mem_write(mem_write),
-        .error(error)
+        .clk           (clk),
+        .reset         (reset),
+
+        .mem_req_valid (mem_req_valid),
+        .mem_req_ready (mem_req_ready),
+        .mem_req_write (mem_req_write),
+        .mem_req_addr  (mem_req_addr),
+        .mem_req_wdata (mem_req_wdata),
+
+        .mem_rsp_valid (mem_rsp_valid),
+        .mem_rsp_rdata (mem_rsp_rdata),
+
+        .error         (error)
+    );
+
+    synchronous_memory_adapter memory_adapter (
+        .clk                 (clk),
+        .reset               (reset),
+
+        .req_valid           (mem_req_valid),
+        .req_ready           (mem_req_ready),
+        .req_write           (mem_req_write),
+        .req_addr            (mem_req_addr),
+        .req_wdata           (mem_req_wdata),
+
+        .rsp_valid           (mem_rsp_valid),
+        .rsp_rdata           (mem_rsp_rdata),
+
+        .memory_read_enable  (memory_read_enable),
+        .memory_write_enable (memory_write_enable),
+        .memory_address      (memory_address),
+        .memory_write_data   (memory_write_data),
+        .memory_read_data    (memory_read_data)
     );
 
     memory #(
@@ -30,11 +63,11 @@ module opencorex_corner_cases_tb;
         .INIT_FILE("programs/hex/integration_corner_cases.hex")
     ) test_memory (
         .clk(clk),
-        .read_enable(mem_read),
-        .write_enable(mem_write),
-        .address(mem_addr),
-        .write_data(mem_write_data),
-        .read_data(mem_read_data)
+        .read_enable(memory_read_enable),
+        .write_enable(memory_write_enable),
+        .address(memory_address),
+        .write_data(memory_write_data),
+        .read_data(memory_read_data)
     );
 
     task automatic check_register (
@@ -96,30 +129,30 @@ module opencorex_corner_cases_tb;
                 );
             end
 
-            if (mem_read && mem_write) begin
+            if (memory_read_enable && memory_write_enable) begin
                 $fatal(
                     1,
-                    "FAIL: mem_read and mem_write asserted together at cycle %0d",
+                    "FAIL: memory_read_enable and memory_write_enable asserted together at cycle %0d",
                     cycle
                 );
             end
 
-            if ((mem_read || mem_write) &&
-                (mem_addr[1:0] != 2'b00)) begin
+            if ((memory_read_enable || memory_write_enable) &&
+                (memory_address[1:0] != 2'b00)) begin
                 $fatal(
                     1,
                     "FAIL: misaligned memory access at cycle %0d address=%08h",
                     cycle,
-                    mem_addr
+                    memory_address
                 );
             end
 
-            if (mem_write && mem_addr == DONE_ADDR) begin
-                if (mem_write_data !== DONE_VALUE) begin
+            if (memory_write_enable && memory_address == DONE_ADDR) begin
+                if (memory_write_data !== DONE_VALUE) begin
                     $fatal(
                         1,
                         "FAIL: incorrect completion value | actual=%08h expected=%08h",
-                        mem_write_data,
+                        memory_write_data,
                         DONE_VALUE
                     );
                 end

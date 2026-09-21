@@ -1,40 +1,78 @@
 module opencorex_core_tb;
 
     localparam int MAX_CYCLES = 150;
-    localparam logic [31:0] DONE_ADDR = 32'h0000_00BC;
+    localparam logic [31:0] DONE_ADDR  = 32'h0000_00BC;
     localparam logic [31:0] DONE_VALUE = 32'h524B_5943;
 
     logic clk;
     logic reset;
 
-    logic [31:0] mem_addr;
-    logic [31:0] mem_read_data;
-    logic [31:0] mem_write_data;
-    logic mem_read;
-    logic mem_write;
-    logic error;
+    logic        mem_req_valid;
+    logic        mem_req_ready;
+    logic        mem_req_write;
+    logic [31:0] mem_req_addr;
+    logic [31:0] mem_req_wdata;
+    logic        mem_rsp_valid;
+    logic [31:0] mem_rsp_rdata;
 
+    logic        memory_read_enable;
+    logic        memory_write_enable;
+    logic [31:0] memory_address;
+    logic [31:0] memory_write_data;
+    logic [31:0] memory_read_data;
+    logic        error;
+
+    // Keep the core named dut so the architectural register checks retain
+    // their existing hierarchy and continue to test the CPU directly.
     opencorex_core dut (
-        .clk(clk),
-        .reset(reset),
-        .mem_read_data(mem_read_data),
-        .mem_addr(mem_addr),
-        .mem_write_data(mem_write_data),
-        .mem_read(mem_read),
-        .mem_write(mem_write),
-        .error(error)
+        .clk           (clk),
+        .reset         (reset),
+
+        .mem_req_valid (mem_req_valid),
+        .mem_req_ready (mem_req_ready),
+        .mem_req_write (mem_req_write),
+        .mem_req_addr  (mem_req_addr),
+        .mem_req_wdata (mem_req_wdata),
+
+        .mem_rsp_valid (mem_rsp_valid),
+        .mem_rsp_rdata (mem_rsp_rdata),
+
+        .error         (error)
+    );
+
+    // This test intentionally excludes the CPU/PIM arbiter. The adapter is
+    // the core's direct request/response endpoint and translates accepted
+    // requests into the existing synchronous-memory interface.
+    synchronous_memory_adapter memory_adapter (
+        .clk                 (clk),
+        .reset               (reset),
+
+        .req_valid           (mem_req_valid),
+        .req_ready           (mem_req_ready),
+        .req_write           (mem_req_write),
+        .req_addr            (mem_req_addr),
+        .req_wdata           (mem_req_wdata),
+
+        .rsp_valid           (mem_rsp_valid),
+        .rsp_rdata           (mem_rsp_rdata),
+
+        .memory_read_enable  (memory_read_enable),
+        .memory_write_enable (memory_write_enable),
+        .memory_address      (memory_address),
+        .memory_write_data   (memory_write_data),
+        .memory_read_data    (memory_read_data)
     );
 
     memory #(
-        .WORDS(1024),
-        .INIT_FILE("programs/hex/integration_smoke.hex")
+        .WORDS     (1024),
+        .INIT_FILE ("programs/hex/integration_smoke.hex")
     ) test_memory (
-        .clk(clk),
-        .read_enable(mem_read),
-        .write_enable(mem_write),
-        .address(mem_addr),
-        .write_data(mem_write_data),
-        .read_data(mem_read_data)
+        .clk          (clk),
+        .read_enable  (memory_read_enable),
+        .write_enable (memory_write_enable),
+        .address      (memory_address),
+        .write_data   (memory_write_data),
+        .read_data    (memory_read_data)
     );
 
     task automatic check_register (
@@ -74,7 +112,7 @@ module opencorex_core_tb;
         forever #5 clk = ~clk;
     end
 
-        initial begin : run_test
+    initial begin : run_test
         reset = 1'b1;
 
         // Hold reset through two active clock edges.
@@ -85,7 +123,7 @@ module opencorex_core_tb;
         reset = 1'b0;
 
         for (int cycle = 0; cycle < MAX_CYCLES; cycle++) begin
-            // Sample the transaction accepted by memory on this edge.
+            // Sample the physical transaction accepted by RAM on this edge.
             @(posedge clk);
 
             if (error !== 1'b0) begin
@@ -96,30 +134,30 @@ module opencorex_core_tb;
                 );
             end
 
-            if (mem_read && mem_write) begin
+            if (memory_read_enable && memory_write_enable) begin
                 $fatal(
                     1,
-                    "FAIL: mem_read and mem_write asserted together at cycle %0d",
+                    "FAIL: physical read and write asserted together at cycle %0d",
                     cycle
                 );
             end
 
-            if ((mem_read || mem_write) &&
-                (mem_addr[1:0] != 2'b00)) begin
+            if ((memory_read_enable || memory_write_enable) &&
+                (memory_address[1:0] != 2'b00)) begin
                 $fatal(
                     1,
                     "FAIL: misaligned memory access at cycle %0d address=%08h",
                     cycle,
-                    mem_addr
+                    memory_address
                 );
             end
 
-            if (mem_write && mem_addr == DONE_ADDR) begin
-                if (mem_write_data !== DONE_VALUE) begin
+            if (memory_write_enable && (memory_address == DONE_ADDR)) begin
+                if (memory_write_data !== DONE_VALUE) begin
                     $fatal(
                         1,
                         "FAIL: incorrect completion value | actual=%08h expected=%08h",
-                        mem_write_data,
+                        memory_write_data,
                         DONE_VALUE
                     );
                 end
@@ -156,7 +194,7 @@ module opencorex_core_tb;
                 );
 
                 $display(
-                    "PASS: integration smoke test completed at cycle %0d",
+                    "PASS: direct core request/response test completed at cycle %0d",
                     cycle
                 );
 

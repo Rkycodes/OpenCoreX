@@ -6,6 +6,8 @@ module controller_tb;
     logic [6:0] opcode;
     logic [2:0] funct3;
     logic [6:0] funct7;
+    logic MemReqReady;
+    logic MemRspValid;
 
     //Write enables
     logic PCWrite;
@@ -83,6 +85,18 @@ module controller_tb;
         1'b0,  //PCSource
         2'b00  //WriteBackSelect
     };
+
+    localparam logic [23:0] FETCH_STALLED_CONTROLS = {
+        11'b00000000000, // no fetch bookkeeping may change
+        4'b1000,         // MemRead remains asserted
+        2'b00,
+        2'b01,           // ALUSrcB = 4 for PC + 4
+        2'b00,
+        1'b0,
+        2'b00
+    };
+
+    localparam logic [23:0] RESPONSE_WAIT_CONTROLS = 24'b0;
 
         localparam logic [23:0] FETCH_CAPTURE_CONTROLS = {
         11'b00010000000, // IRWrite
@@ -232,12 +246,14 @@ module controller_tb;
         2'b00
     };
 
-    controller dut(
+    controller dut (
         .reset(reset),
         .clk(clk),
         .opcode(opcode),
         .funct3(funct3),
         .funct7(funct7),
+        .MemReqReady(MemReqReady),
+        .MemRspValid(MemRspValid),
         .PCWrite(PCWrite),
         .PCWriteCond(PCWriteCond),
         .BranchInvert(BranchInvert),
@@ -853,6 +869,164 @@ module controller_tb;
             $display("PASS: ERROR state persistence and reset recovery");
         end
     endtask
+
+    task automatic test_memory_handshake_stalls;
+        begin
+            // --------------------------------------------------------
+            // A stalled fetch must hold its request and must not update
+            // PC, OldPC, or PCPlus4 before the request is accepted.
+            // --------------------------------------------------------
+            MemReqReady = 1'b1;
+            MemRspValid = 1'b1;
+            reset_dut();
+
+            opcode = 7'b0000011; // LW path after fetch completes
+            funct3 = 3'b010;
+            funct7 = 7'b0;
+
+            MemReqReady = 1'b0;
+            MemRspValid = 1'b0;
+            check_controls(
+                FETCH_STALLED_CONTROLS,
+                "stalled FETCH suppresses bookkeeping writes"
+            );
+
+            @(posedge clk);
+            check_controls(
+                FETCH_STALLED_CONTROLS,
+                "stalled FETCH remains in request state"
+            );
+
+            @(negedge clk);
+            MemReqReady = 1'b1;
+            check_controls(
+                FETCH_CONTROLS,
+                "accepted FETCH enables bookkeeping writes"
+            );
+
+            @(posedge clk);
+            check_controls(
+                RESPONSE_WAIT_CONTROLS,
+                "FETCH_CAPTURE waits with IRWrite disabled"
+            );
+
+            @(posedge clk);
+            check_controls(
+                RESPONSE_WAIT_CONTROLS,
+                "FETCH_CAPTURE tolerates multi-cycle response latency"
+            );
+
+            @(negedge clk);
+            MemRspValid = 1'b1;
+            check_controls(
+                FETCH_CAPTURE_CONTROLS,
+                "valid fetch response enables IRWrite"
+            );
+
+            @(posedge clk);
+            check_controls(
+                DECODE_LEGAL_CONTROLS,
+                "valid fetch response advances to DECODE"
+            );
+
+            // Advance through address generation, then stall the LW request.
+            @(posedge clk);
+            check_controls(MEM_ADDR_CONTROLS, "handshake LW MEM_ADDR");
+
+            @(negedge clk);
+            MemReqReady = 1'b0;
+            MemRspValid = 1'b0;
+
+            @(posedge clk);
+            check_controls(
+                MEM_READ_CONTROLS,
+                "stalled LW keeps read request asserted"
+            );
+
+            @(posedge clk);
+            check_controls(
+                MEM_READ_CONTROLS,
+                "stalled LW remains in MEM_READ"
+            );
+
+            @(negedge clk);
+            MemReqReady = 1'b1;
+
+            @(posedge clk);
+            check_controls(
+                RESPONSE_WAIT_CONTROLS,
+                "MEM_READ_CAPTURE waits with MDRWrite disabled"
+            );
+
+            @(posedge clk);
+            check_controls(
+                RESPONSE_WAIT_CONTROLS,
+                "load response may take multiple cycles"
+            );
+
+            @(negedge clk);
+            MemRspValid = 1'b1;
+            check_controls(
+                MEM_READ_CAPTURE_CONTROLS,
+                "valid load response enables MDRWrite"
+            );
+
+            @(posedge clk);
+            check_controls(
+                MEM_WRITEBACK_CONTROLS,
+                "valid load response advances to MEM_WRITEBACK"
+            );
+
+            // --------------------------------------------------------
+            // A stalled store remains asserted and completes directly
+            // at request handshake without waiting for a response.
+            // --------------------------------------------------------
+            MemReqReady = 1'b1;
+            MemRspValid = 1'b1;
+            reset_dut();
+
+            opcode = 7'b0100011;
+            funct3 = 3'b010;
+            funct7 = 7'b0;
+
+            @(posedge clk);
+            check_controls(FETCH_CAPTURE_CONTROLS, "store FETCH_CAPTURE");
+
+            @(posedge clk);
+            check_controls(DECODE_LEGAL_CONTROLS, "store DECODE");
+
+            @(posedge clk);
+            check_controls(MEM_ADDR_CONTROLS, "store MEM_ADDR");
+
+            @(negedge clk);
+            MemReqReady = 1'b0;
+
+            @(posedge clk);
+            check_controls(
+                MEM_WRITE_CONTROLS,
+                "stalled store keeps write request asserted"
+            );
+
+            @(posedge clk);
+            check_controls(
+                MEM_WRITE_CONTROLS,
+                "stalled store remains in MEM_WRITE"
+            );
+
+            @(negedge clk);
+            MemReqReady = 1'b1;
+
+            @(posedge clk);
+            check_controls(
+                FETCH_CONTROLS,
+                "accepted store returns directly to FETCH"
+            );
+
+            MemReqReady = 1'b1;
+            MemRspValid = 1'b1;
+            $display("PASS: request/response handshake stall behavior");
+        end
+    endtask
         
     initial begin
         //waveform generation
@@ -867,6 +1041,10 @@ module controller_tb;
         opcode = 7'b0;
         funct3 = 3'b0;
         funct7 = 7'b0;
+        MemReqReady = 1'b1;
+        MemRspValid = 1'b1;
+
+        test_memory_handshake_stalls();
 
         //legal R-type instruction paths
         test_rtype(

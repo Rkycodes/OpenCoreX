@@ -102,7 +102,7 @@ The version-1 contract is specified in [`pim-architecture-v0.1.md`](pim-architec
 
 Goal: build a synthesizable, technology-independent PIM prototype and run the same workload used by the CPU baseline.
 
-- [ ] Finalize module port lists and cycle-level MMIO timing
+- [x] Finalize module port lists and cycle-level MMIO timing
 - [ ] Preserve `opencorex_memory_subsystem` as the Phase 1 transport baseline
 - [ ] Add a new integrated PIM subsystem and CPU RAM/MMIO address-routing boundary
 - [ ] Implement and verify `pim_mmio_regs`

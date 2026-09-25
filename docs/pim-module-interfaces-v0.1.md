@@ -369,7 +369,9 @@ sequencing, result writes, and completion/error events.
 ### Controller invariants
 
 - `cmd_start` snapshots descriptor and command into active registers, sets
-  `busy`, and begins validation.
+  `busy`, and begins validation. `busy` is registered on the accepted
+  `cmd_start` edge; it is not a combinational function of the pending CPU
+  request or `cmd_start`.
 - The controller keeps its active descriptor stable until completion or reset.
 - Validation failure causes no external memory request and no vector-buffer
   mutation.
@@ -433,6 +435,12 @@ changed.
 8. Integrate and test `pim_accelerator`.
 9. Integrate and test `opencorex_pim_subsystem` with the existing core,
    interconnect, adapter, RAM, and matrix-vector benchmark.
+
+The integrated launch test must observe the `START` request handshake while
+CPU ready is high, the controller's descriptor snapshot on that edge, registered
+busy high in the following cycle, and the CPU's next request blocked until
+completion or rejection. The MMIO/router unit test alone does not establish
+the controller's registered transition.
 
 RTL implementation does not begin until the port names, widths, timing, and
 ownership in this document have been reviewed for consistency.

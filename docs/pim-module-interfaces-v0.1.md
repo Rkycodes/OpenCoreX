@@ -211,15 +211,19 @@ perform arithmetic.
   `cmd_start` on that accepted transfer.
 - The controller snapshots `cmd_descriptor` and `cmd_word` on the same edge.
 - Reserved command bits and unsupported modes are checked by the sequential
-  validator after busy asserts.
+  validator after busy asserts for an accepted `START`.
 - A start while busy reports `START_WHILE_BUSY`; the active operation continues.
 - A start while sticky error is set is rejected and preserves the original
   first-fault code.
 - A write with `START=0` has no launch or modifier effect when reserved and
-  unsupported bits are zero.
+  unsupported bits are zero. With `START=0`, MMIO itself records the sticky
+  `RESERVED_COMMAND_BIT` or `UNSUPPORTED_MODE` error because no validator
+  request is launched. Reserved bits take priority when both are present.
 - Configuration, `STATUS_CLEAR`, and `BUFFER_CONTROL` writes while busy are
   consumed but rejected with `CONFIG_WRITE_WHILE_BUSY`; active state is not
   modified.
+- Version-1 writes to the reserved interrupt registers are simulation-fatal
+  invalid accesses. Their reads return zero until interrupt behavior is defined.
 
 ## Command Validator: `pim_command_validator.sv`
 

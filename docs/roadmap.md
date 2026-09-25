@@ -22,23 +22,28 @@
 - [x] Verify supported instructions
 - [x] Run full processor regression
 - [x] Validate example programs
-- [x] Automate local regressio and lint with `make verify`
+- [x] Automate local regression and lint with `make verify`
 
-## Research Direction — Decisions from September 7, 2026 Sync
+## Research Direction — Decisions through September 24, 2026
 
 The next phase of OpenCoreX is benchmark-driven PIM research rather than completing full RV32I or RV32M first.
 
 - The PIM block will begin as a coprocessor-style unit controlled by the CPU.
-- The initial control protocol will use explicit `start`, `busy`, and `done` behavior.
-- The CPU will decode custom PIM instructions using `opcode`, `funct3`, and `funct7` and issue commands to the PIM unit.
+- Version 1 uses memory-mapped configuration, command, status, and capability registers; it does not require a PIM-specific ISA extension.
+- An accepted `START` store launches one blocking command. The CPU remains idle until the PIM completes its final result write or rejects the command.
+- The PIM uses a private, parameterized local vector buffer with a default capacity of 16 words and a one-port synchronous interface.
+- Vector fill may overlap computation. A response-bypass path supplies a newly returned vector word directly to compute while storing it locally.
+- Version 1 permits one outstanding PIM read and one MAC lane. Multiple outstanding reads, multiple lanes, chunking, tiling, nonblocking execution, and interrupts are later extensions.
+- Results are written to the programmed output region, and `done` is set only after the final output-write handshake.
+- The existing round-robin interconnect remains the baseline, and PIM control tolerates variable request and response latency even though the current RAM adapter responds in one cycle.
 - The initial accelerated operation will be coarse-grained dot-product / matrix-vector work rather than individual PIM multiply/add instructions.
 - The first agreed benchmark is a `1 x 16` vector multiplied by a `16 x 32` matrix.
 - The CPU reference implementation will add scalar `MUL` and only other ISA features that materially simplify or enable the benchmark.
 - Additional loop and branch instructions may be added when they reduce benchmark complexity, but completing full RV32I is not a prerequisite for PIM work.
-- PIM timing, power, energy, and area parameters should be grounded in NeuroSim and relevant device literature rather than arbitrary constants.
-- PiMulator should be investigated for scope and possible reuse, but OpenCoreX is not committed to adopting it until its role is understood.
+- NeuroSim exploration begins with SRAM and then extends to RRAM if feasible. PiMulator remains under investigation for compatible memory-system modeling or reuse.
+- OpenCoreX owns external traffic, arbitration, and scheduling measurements; tool-internal movement must not be counted twice.
 - Evaluation must include offload overheads rather than measuring PIM compute in isolation.
-- Required comparison metrics include operand placement, instruction issue, memory traffic, synchronization, result readback, cycles/latency, throughput, power, energy efficiency, and area.
+- The detailed evaluation plan remains deferred until the next advisor meeting.
 - Dot product is the required initial deliverable. ReLU and softmax support are possible later extensions toward neural-network inference.
 
 ## Research Milestone 1 — CPU Reference
@@ -56,9 +61,9 @@ Goal: establish a correct and measurable scalar baseline for the exact workload 
 - [x] Record loads, stores, multiplies, additions, and total memory traffic
 - [x] Establish cycles per output and cycles per dot product
 
-## Research Milestone 2 — PIM Architecture and ISA
+## Research Milestone 2 — PIM Architecture and Control Contract
 
-Goal: define the CPU-to-PIM contract before writing integrated PIM RTL.
+Goal: define the CPU-to-PIM contract, local-buffer behavior, and verification boundary before writing integrated PIM RTL.
 
 ### Phase 1 — Shared-memory transport
 
@@ -75,34 +80,39 @@ Goal: define the CPU-to-PIM contract before writing integrated PIM RTL.
 - [x] Verify that an idle PIM requester adds no matrix-vector baseline cycles
 - [x] Document the Phase 1 shared-memory interface and limitations
 
-### Phase 2 — PIM command and software contract
+### Phase 2 — PIM command and software contract (architecture complete)
 
-- [ ] Select memory-mapped registers, a descriptor pointer, custom instructions, or a defined combination
-- [ ] Select a custom opcode/funct encoding if custom instructions are used
-- [ ] Define the first coarse-grained PIM command semantics
-- [ ] Define how source, weight, destination, and configuration operands are supplied
-- [ ] Define destination and result placement
-- [ ] Define `start`, `busy`, `done`, and `error` timing
-- [ ] Define CPU behavior while a complete PIM operation is active
-- [ ] Define how software prevents access to incomplete PIM results
-- [ ] Define software-visible memory-region ownership
-- [ ] Define architectural state visible to software
-- [ ] Define polling behavior and the path toward interrupt-driven completion
-- [ ] Define reset behavior for an in-flight PIM operation
-- [ ] Decide whether the command layer supports only one outstanding operation
-- [ ] Define the changes required for variable-latency memory
+- [x] Select MMIO configuration and launch without a version-1 PIM ISA extension
+- [x] Define vector, matrix, stride, output, and count fields
+- [x] Define command, status, capability, error, clear, and buffer-control registers
+- [x] Define a single outstanding blocking command
+- [x] Define CPU idle behavior from accepted `START` through final write-back
+- [x] Define sticky `done`, sticky first-fault `error_code`, and write-one-to-clear behavior
+- [x] Define atomic sequential validation and deterministic error priority
+- [x] Define private vector-buffer capacity, valid metadata, reuse, and invalidation
+- [x] Define one outstanding read and variable-latency-safe request/response sequencing
+- [x] Define output placement and final-write completion semantics
+- [x] Define reset behavior, including persistence of already accepted RAM writes
+- [x] Reserve nonblocking execution, interrupts, memory-fault responses, multiple reads, multiple lanes, and tiling for later versions
+- [x] Define the initial verification strategy and parameter corner cases
+
+The version-1 contract is specified in [`pim-architecture-v0.1.md`](pim-architecture-v0.1.md).
 
 ## Research Milestone 3 — Functional PIM RTL
 
 Goal: build a synthesizable, technology-independent PIM prototype and run the same workload used by the CPU baseline.
 
-- [ ] Implement standalone PIM controller
-- [ ] Implement the initial dot-product / matrix-vector datapath
-- [ ] Verify PIM arithmetic independently
-- [ ] Verify variable-latency `start` / `busy` / `done` behavior
-- [ ] Integrate custom-instruction decode into OpenCoreX
-- [ ] Integrate the PIM coprocessor with the CPU
-- [ ] Add required memory arbitration
+- [ ] Finalize module port lists and cycle-level MMIO timing
+- [ ] Preserve `opencorex_memory_subsystem` as the Phase 1 transport baseline
+- [ ] Add a new integrated PIM subsystem and CPU RAM/MMIO address-routing boundary
+- [ ] Implement and verify `pim_mmio_regs`
+- [ ] Implement and verify the sequential command validator
+- [ ] Implement and verify the one-port synchronous vector buffer
+- [ ] Implement and verify the one-lane MAC using the CPU arithmetic semantics
+- [ ] Implement and verify the PIM controller and response-bypass path
+- [ ] Integrate the PIM requester with the existing round-robin memory interconnect
+- [ ] Verify randomized request stalls and 1–20-cycle read-response delays
+- [ ] Verify blocking CPU launch, completion, rejection, reuse, invalidation, and reset
 - [ ] Execute the `1 x 16` by `16 x 32` benchmark through the PIM path
 - [ ] Verify PIM results against the CPU/software reference
 
@@ -114,7 +124,7 @@ Goal: compare the complete CPU and PIM execution paths using a fair system bound
 - [ ] Investigate relevant device papers for parameter validation
 - [ ] Investigate PiMulator scope and determine whether any component should be reused
 - [ ] Account for operand placement cost
-- [ ] Account for custom-instruction issue overhead
+- [ ] Account for MMIO configuration and launch overhead
 - [ ] Account for synchronization/wait overhead
 - [ ] Account for memory traffic and result readback
 - [ ] Compare total latency/cycles

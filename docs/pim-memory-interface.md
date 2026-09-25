@@ -7,8 +7,8 @@ OpenCoreX CPU, a future PIM requester, and the existing unified single-port
 memory.
 
 Phase 1 establishes the communication and arbitration substrate. It does not
-yet implement the PIM compute engine, PIM command registers, custom PIM
-instructions, or completion synchronization.
+yet implement the PIM compute engine, PIM MMIO registers, or completion
+synchronization.
 
 The design currently assumes:
 
@@ -306,48 +306,69 @@ The Phase 1 tests cover the following architectural properties:
 - Formal verification properties
 - Synthesized area, timing, or FPGA resource measurements
 
-## Phase 2 Decision Boundary
+## Selected Phase 2 Architecture
 
-The next phase should define the software-visible PIM command protocol before
-implementing the PIM compute engine.
+Phase 2 architecture decisions were completed through September 24, 2026.
+The full contract is maintained in
+[`pim-architecture-v0.1.md`](pim-architecture-v0.1.md). The decisions that
+directly extend this Phase 1 transport are:
 
-The three main command-delivery choices are:
+- Version 1 uses an MMIO register page at `0x4000_0000`; no PIM-specific ISA
+  extension is required.
+- The CPU's accepted `START` store completes, after which later CPU requests
+  are blocked through the existing request/ready mechanism until PIM finishes
+  or rejects the command.
+- A private, power-of-two vector buffer defaults to 16 words and exposes
+  `valid_count` and `vector_full` status.
+- The buffer has one synchronous read-or-write port. A returning vector word
+  is written locally and bypassed directly to the current compute operand.
+- The controller issues at most one PIM read at a time and waits for
+  `pim_rsp_valid`; it does not assume the current adapter's one-cycle timing.
+- Version 1 retains round-robin arbitration and one physical shared-memory
+  port. Because the CPU is blocked after launch, ordinary PIM execution has no
+  CPU traffic competing for that port.
+- Writes complete at their request handshake. `done` is asserted only after
+  the final output write is accepted.
+- Results use the configured output region. Predictable alignment, bounds,
+  overflow, stride, overlap, and reuse failures are rejected before PIM data
+  traffic begins.
+- Reset clears PIM control and buffer-valid state but does not roll back RAM
+  writes that were already accepted.
 
-| Choice | Main advantage | Main limitation |
-|---|---|---|
-| Multiple custom instructions | Direct register operands and compact small commands | ISA and decode complexity grows as more addresses/configuration fields are needed. |
-| Memory-mapped command registers | Simple bring-up, readable status, and conventional polling | Several CPU stores are required and register-update ordering must be specified. |
-| Descriptor pointer | Extensible command format with one launch reference | Requires the PIM engine to fetch and validate the descriptor before work begins. |
+### Required integration change
 
-For the first implementation, a practical direction is memory-mapped command
-registers with one outstanding operation and polling. A later custom launch
-instruction can reduce software overhead, and a descriptor pointer becomes
-more valuable when commands require many fields or queues. This remains an
-architecture choice to confirm with Professor Yang.
+The current `opencorex_memory_subsystem` connects every CPU request directly
+to the RAM interconnect. MMIO therefore requires an address-routing boundary
+before that interconnect:
 
-## Questions for Professor Yang
+- ordinary CPU addresses continue to the interconnect and RAM,
+- addresses in the PIM page go to the PIM MMIO slave,
+- MMIO requests never reach the physical RAM adapter,
+- the PIM engine remains a requester on the existing PIM interconnect port.
 
-1. Is fixed one-cycle shared-memory behavior an acceptable initial integration
-   model, or should the interface immediately tolerate variable PIM/memory
-   latency?
-2. Should the first PIM engine use shared RAM directly, a local scratchpad, or
-   a hybrid design?
-3. Should Phase 2 begin with memory-mapped registers, a descriptor pointer, or
-   a custom instruction that launches one of those mechanisms?
-4. Is one outstanding PIM command sufficient for the first CPU-versus-PIM
-   experiment?
-5. Should completion initially use polling only, with interrupts deferred?
-6. What exact event should set and clear `done`, and may a new command start
-   while `done` remains set?
-7. What should happen if reset arrives during an active PIM operation?
-8. Who owns the input, weight, and output regions while PIM is busy?
-9. Is arbitration infrastructure part of the research contribution or only
-   supporting implementation?
-10. Should PiMulator supply system/memory timing while NeuroSim supplies array
-    latency, energy, and area, or should one tool be the primary model?
-11. Which PIM technology and organization should be modeled first?
-12. Which metrics are required for a meaningful comparison beyond CPU cycles
-    and memory traffic?
+The verified Phase 1 subsystem remains as the transport baseline. A new PIM
+integration top will compose the core, address-routing boundary, accelerator,
+existing interconnect, and memory adapter.
+
+### Variable-latency boundary
+
+The PIM controller will tolerate arbitrary response delay with one
+outstanding read. The current shared interconnect and synchronous adapter
+remain fixed-latency Phase 1 components until the system-level memory contract
+is deliberately extended. Supporting arbitrary latency throughout the whole
+system will require preventing a second read while a response is pending or
+adding ordered ownership storage.
+
+## Remaining Research Questions
+
+1. Which internal timing, energy, area, and data movement should come from
+   NeuroSim, and which memory-system behavior should come from PiMulator?
+2. Which external traffic and scheduling policies constitute the OpenCoreX
+   contribution without duplicating movement counted by either tool?
+3. After the SRAM study, which RRAM organization and assumptions provide a
+   fair comparison?
+4. Which counters and evaluation metrics should become software-visible after
+   the advisor confirms the evaluation plan?
 
 ## Sources and Research Context
 

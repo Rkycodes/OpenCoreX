@@ -237,7 +237,7 @@ Key Observation: the CPU rereads the same 16-word vector once per output column,
 - Working on memory ownership and arbitration for single-port synchronous unified memory between CPU and nonblocking PiM.
 - Working on system block diagrams to get feedback from Prof. Yang on.
 
-## 2026-09-20
+## Week of 2026-09-20
 - Added a two-requester shared-memory interconnect for the CPU and future PIM engine.
 - Added ready/valid request handshakes so arbitration and downstream backpressure can stall either requester safely.
 - Implemented round-robin contention handling with grant locking while the selected request is stalled.
@@ -248,4 +248,21 @@ Key Observation: the CPU rereads the same 16-word vector once per output column,
 - Added the integrated `opencorex_memory_subsystem` wrapper while keeping the physical RAM external.
 - Verified CPU/PIM contention, backpressure, response routing, reset behavior, and preservation of RAM contents across reset.
 - Verified that the inactive-PIM subsystem preserves the CPU matrix-vector baseline of 23,685 active cycles and 4,327 instruction fetches.
-- Expanded the regression suite to 20 positive testbenches plus three expected-failure memory tests.
+- Expanded the regression suite to 20 positive testbenches plus three expected-failure memory tests.I
+
+- Finalized the version-1 PIM architectural contract before writing functional PIM RTL.
+- Selected MMIO configuration and launch without a PIM-specific ISA extension.
+- Defined a blocking CPU policy from the accepted `START` store through final PIM result write-back.
+- Selected a private, power-of-two vector buffer with `BUFFER_WORDS=16` by default.
+- Selected one synchronous read-or-write buffer port with a response-bypass path for newly returned vector operands.
+- Defined internal per-entry validity plus software-visible `valid_count` and `vector_full` status.
+- Defined explicit vector reuse, resident base/length matching, and idle-only invalidation.
+- Selected one outstanding PIM read and one MAC lane for the initial implementation.
+- Defined signed 32-bit CPU-matching multiplication and modulo-`2^32` accumulation.
+- Defined MMIO command, status, capability, error, clear, and buffer-control behavior.
+- Defined sequential atomic validation, deterministic first-fault priority, and half-open address-range checks.
+- Retained the existing round-robin, single-port shared-memory transport.
+- Defined completion as acceptance of the final output write and reset as non-transactional: accepted RAM writes persist.
+- Defined module-level verification, golden arithmetic comparison, randomized 1–20-cycle response delay, parameter sweeps, reset injection, protocol assertions, and reuse tests.
+- Preserved `opencorex_memory_subsystem` as the verified Phase 1 baseline and selected a separate PIM integration top for the next milestone.
+- Recorded the version-1 architecture in `docs/pim-architecture-v0.1.md`.

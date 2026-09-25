@@ -281,3 +281,15 @@ Key Observation: the CPU rereads the same 16-word vector once per output column,
 - Expanded the regression suite to 21 positive testbenches and four expected-failure tests.
 - Completed the full make verify regression with Verilator 5.032; all RTL lint, positive tests, and expected-failure tests passed.
 - Preserved the existing Phase 1 memory interconnect, synchronous-memory adapter, and memory subsystem without modification.
+
+## 2026-09-25
+
+- Began Research Milestone 3 on `feat/pim-mmio` from remote `main` at `d11ff76`.
+- Added `pim_pkg.sv` for the six-field descriptor, error codes, MMIO offsets, and architectural bit positions. Parameter-derived values remain local to modules.
+- Added `pim_mmio_regs.sv` with six configuration registers, registered read responses, sticky status and first-fault code, accepted-edge `START`, W1C status, capabilities, and idle-only buffer invalidation.
+- Resolved the `START=0` command-bit gap: MMIO records reserved-bit or unsupported-mode errors without launching the validator. Reserved bits have priority.
+- Defined writes to reserved interrupt registers as simulation-fatal invalid accesses until interrupt register behavior exists.
+- Added a self-checking MMIO testbench and five expected-failure access tests; verified START-store retirement through the CPU address router.
+- Compiled the package first in the regression and preserved the existing Phase 1 subsystem without changes.
+- Completed full Verilator 5.032 verification: RTL lint, 22 positive testbenches, and nine expected-failure cases passed.
+- Kept the roadmap's module-port-list item open: controller and accelerator interfaces still specify groups rather than finalized complete port lists.

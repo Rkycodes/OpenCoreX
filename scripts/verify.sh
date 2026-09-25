@@ -10,6 +10,15 @@ readonly SCRIPT_DIR
 readonly REPO_ROOT
 readonly BUILD_ROOT
 
+# Keep the shared package first, independent of shell glob ordering.
+RTL_SOURCES=(rtl/pim_pkg.sv)
+for rtl_source in rtl/*.sv; do
+    if [[ "$rtl_source" != rtl/pim_pkg.sv ]]; then
+        RTL_SOURCES+=("$rtl_source")
+    fi
+done
+readonly -a RTL_SOURCES
+
 readonly -a POSITIVE_TESTS=(
     alu_decoder_tb
     alu_tb
@@ -32,6 +41,7 @@ readonly -a POSITIVE_TESTS=(
     opencorex_reset_tb
     opencorex_memory_subsystem_tb
     opencorex_matvec_subsystem_tb
+    pim_mmio_regs_tb
 )
 
 cd "$REPO_ROOT"
@@ -92,6 +102,13 @@ run_lint() {
         -GRAM_WORDS=1024 \
         rtl/cpu_address_router.sv
 
+    print_section "PIM MMIO RTL lint"
+
+    verilator --lint-only -Wall \
+        --top-module pim_mmio_regs \
+        rtl/pim_pkg.sv \
+        rtl/pim_mmio_regs.sv
+
     print_section "Synchronous memory adapter RTL lint"
 
     verilator --lint-only -Wall \
@@ -138,7 +155,7 @@ run_positive_tests() {
         verilator --binary --timing -Wall \
             --top-module "$test_name" \
             --Mdir "$test_build" \
-            rtl/*.sv \
+            "${RTL_SOURCES[@]}" \
             "$testbench"
 
         "$executable"
@@ -240,7 +257,55 @@ run_expected_failure_tests() {
 
     printf 'PASS: router unmapped request failed for the expected reason\n'
 
+    test_build="$BUILD_ROOT/pim_mmio_regs_tb"
+    executable="$test_build/Vpim_mmio_regs_tb"
+
+    print_section "Build pim_mmio_regs_tb"
+
+    verilator --binary --timing -Wall \
+        --top-module pim_mmio_regs_tb \
+        --Mdir "$test_build" \
+        rtl/pim_pkg.sv \
+        rtl/pim_mmio_regs.sv \
+        rtl/cpu_address_router.sv \
+        tb/pim_mmio_regs_tb.sv
+
+    run_mmio_expected_failure "$executable" unaligned \
+        "ILLEGAL: PIM MMIO read at 40000001"
+    run_mmio_expected_failure "$executable" reserved \
+        "ILLEGAL: PIM MMIO read at 40000050"
+    run_mmio_expected_failure "$executable" interrupt_write \
+        "ILLEGAL: PIM MMIO write at 40000044"
+    run_mmio_expected_failure "$executable" write_only_read \
+        "ILLEGAL: PIM MMIO read at 40000018"
+    run_mmio_expected_failure "$executable" read_only_write \
+        "ILLEGAL: PIM MMIO write at 4000001c"
+
     printf '\nPASS: all expected-failure tests completed\n'
+}
+
+run_mmio_expected_failure() {
+    local executable="$1"
+    local test_name="$2"
+    local expected_message="$3"
+    local log_file="$BUILD_ROOT/pim_mmio_${test_name}.log"
+    local status
+
+    print_section "pim_mmio_regs_tb TEST=$test_name"
+    if "$executable" "+TEST=$test_name" >"$log_file" 2>&1; then
+        status=0
+    else
+        status=$?
+    fi
+
+    cat "$log_file"
+    if [[ "$status" -eq 0 ]]; then
+        fail "pim_mmio_regs_tb TEST=$test_name unexpectedly succeeded"
+    fi
+    if ! grep -Fq "$expected_message" "$log_file"; then
+        fail "pim_mmio_regs_tb TEST=$test_name produced the wrong failure"
+    fi
+    printf 'PASS: MMIO TEST=%s failed for the expected reason\n' "$test_name"
 }
 
 clean_builds() {

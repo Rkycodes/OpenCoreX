@@ -14,6 +14,7 @@ readonly -a POSITIVE_TESTS=(
     alu_decoder_tb
     alu_tb
     controller_tb
+    cpu_address_router_tb
     datapath_tb
     immediate_generator_tb
     memory_init_tb
@@ -83,6 +84,13 @@ run_lint() {
     verilator --lint-only -Wall \
         --top-module memory_interconnect \
         rtl/memory_interconnect.sv
+
+    print_section "CPU address router RTL lint"
+
+    verilator --lint-only -Wall \
+        --top-module cpu_address_router \
+        -GRAM_WORDS=1024 \
+        rtl/cpu_address_router.sv
 
     print_section "Synchronous memory adapter RTL lint"
 
@@ -172,6 +180,7 @@ run_expected_failure() {
 run_expected_failure_tests() {
     local test_build="$BUILD_ROOT/memory_error_tb"
     local executable="$test_build/Vmemory_error_tb"
+    local status
 
     mkdir -p "$BUILD_ROOT"
 
@@ -197,6 +206,39 @@ run_expected_failure_tests() {
         "$executable" \
         3 \
         "ILLEGAL: memory address out of range: 00001000"
+
+    test_build="$BUILD_ROOT/cpu_address_router_tb"
+    executable="$test_build/Vcpu_address_router_tb"
+
+    print_section "Build cpu_address_router_tb"
+
+    verilator --binary --timing -Wall \
+        --top-module cpu_address_router_tb \
+        --Mdir "$test_build" \
+        rtl/cpu_address_router.sv \
+        tb/cpu_address_router_tb.sv
+
+    print_section "cpu_address_router_tb TEST=unmapped"
+
+    if "$executable" "+TEST=unmapped" \
+            >"$BUILD_ROOT/cpu_address_router_unmapped.log" 2>&1; then
+        status=0
+    else
+        status=$?
+    fi
+
+    cat "$BUILD_ROOT/cpu_address_router_unmapped.log"
+
+    if [[ "$status" -eq 0 ]]; then
+        fail "cpu_address_router_tb TEST=unmapped unexpectedly succeeded"
+    fi
+
+    if ! grep -Fq "ILLEGAL: unmapped CPU address 00000040" \
+            "$BUILD_ROOT/cpu_address_router_unmapped.log"; then
+        fail "cpu_address_router_tb TEST=unmapped produced the wrong failure"
+    fi
+
+    printf 'PASS: router unmapped request failed for the expected reason\n'
 
     printf '\nPASS: all expected-failure tests completed\n'
 }

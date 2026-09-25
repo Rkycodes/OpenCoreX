@@ -249,7 +249,6 @@ Key Observation: the CPU rereads the same 16-word vector once per output column,
 - Verified CPU/PIM contention, backpressure, response routing, reset behavior, and preservation of RAM contents across reset.
 - Verified that the inactive-PIM subsystem preserves the CPU matrix-vector baseline of 23,685 active cycles and 4,327 instruction fetches.
 - Expanded the regression suite to 20 positive testbenches plus three expected-failure memory tests.I
-
 - Finalized the version-1 PIM architectural contract before writing functional PIM RTL.
 - Selected MMIO configuration and launch without a PIM-specific ISA extension.
 - Defined a blocking CPU policy from the accepted `START` store through final PIM result write-back.
@@ -266,3 +265,19 @@ Key Observation: the CPU rereads the same 16-word vector once per output column,
 - Defined module-level verification, golden arithmetic comparison, randomized 1–20-cycle response delay, parameter sweeps, reset injection, protocol assertions, and reuse tests.
 - Preserved `opencorex_memory_subsystem` as the verified Phase 1 baseline and selected a separate PIM integration top for the next milestone.
 - Recorded the version-1 architecture in `docs/pim-architecture-v0.1.md`.
+- Added parameterized cpu_address_router to decode CPU requests between RAM and the PIM MMIO page.
+- Defined half-open address windows for RAM and MMIO using widened arthmetic to prevent 32-bit range clculations from warpping.
+- Added simulation time checks that reject zero-sized or overlapping address windows
+- Kept address decoding separate from target validation: misaligned RAM accesses, misaligned MMIO accesses, and reserved MMIO offsets are forwarded to the selected target for validation.
+- Added blocking behavior so pim_busy and an outstanding CPU read prevent new CPU requests from reaching either destination
+- Preserved START-store retirement by allowing the MMIO write to complete before the PIM block raises its registered busy signal.
+- Added support for one outstanding CPU read with registered response-source ownership, ensuring delayed RAM and MMIO responses return from the destination that accepted the request.
+- Ensured writes do not create pending read state or overwrite response ownership.
+- Allowed an already-owned CPU response to complete while pim_busy is asserted.
+- Added safe reset behavior that clears pending ownership, suppresses visible protocol outputs, and ignores late responses from pre-reset transactions.
+- Added simulation failure behavior for unmapped CPU addresses while keeping synthesized behavior non-forwarding because version 1 has no architectural access-fault response.
+- Added protocol assertions for mutually exclusive destination selection, blocked-request enforcement, stable stalled payloads, and response routing by recorded ownership.
+- Added cpu_address_router_tb coverage for RAM/MMIO boundaries, reserved MMIO offsets, target backpressure, START-to-busy timing, delayed responses, response-source isolation, writes, reset during a pending read, and unmapped accesses.
+- Expanded the regression suite to 21 positive testbenches and four expected-failure tests.
+- Completed the full make verify regression with Verilator 5.032; all RTL lint, positive tests, and expected-failure tests passed.
+- Preserved the existing Phase 1 memory interconnect, synchronous-memory adapter, and memory subsystem without modification.

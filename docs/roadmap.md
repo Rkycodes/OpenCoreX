@@ -103,13 +103,13 @@ The version-1 contract is specified in [`pim-architecture-v0.1.md`](pim-architec
 Goal: build a synthesizable, technology-independent PIM prototype and run the same workload used by the CPU baseline.
 
 - [x] Finalize module port lists and cycle-level MMIO timing
-- [ ] Preserve `opencorex_memory_subsystem` as the Phase 1 transport baseline
+- [x] Preserve `opencorex_memory_subsystem` as the Phase 1 transport baseline
 - [ ] Add a new integrated PIM subsystem and CPU RAM/MMIO address-routing boundary
-- [ ] Implement and verify `pim_mmio_regs`
+- [x] Implement and verify `pim_mmio_regs`
 - [x] Implement and verify the sequential command validator
-- [ ] Implement and verify the one-port synchronous vector buffer
-- [ ] Implement and verify the one-lane MAC using the CPU arithmetic semantics
-- [ ] Implement and verify the PIM controller and response-bypass path
+- [x] Implement and verify the one-port synchronous vector buffer
+- [x] Implement and verify the one-lane MAC using the CPU arithmetic semantics
+- [x] Implement and verify the PIM controller and response-bypass path
 - [ ] Integrate the PIM requester with the existing round-robin memory interconnect
 - [ ] Verify randomized request stalls and 1–20-cycle read-response delays
 - [ ] Verify blocking CPU launch, completion, rejection, reuse, invalidation, and reset

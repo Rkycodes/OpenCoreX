@@ -301,3 +301,8 @@ Key Observation: the CPU rereads the same 16-word vector once per output column,
 - Added self-checking coverage for error priority, boundaries, overlap, reuse, reset, back-to-back commands, and one-entry parameters. A second start while busy is a simulation-fatal protocol violation.
 - Added standalone validator lint, the positive testbench, and the expected-failure test to the regression.
 - Completed the full `make verify` regression with Verilator 5.032.
+
+- Completed the one-lane MAC and standalone arithmetic verification.
+- Implemented and independently verified the PIM controller: command snapshot, validation gate, vector fill/reuse with response bypass, variable-latency reads, MAC scheduling, and completion after final write acceptance.
+- Added controller lint and standalone test coverage to `make verify`; integration remains the next milestone.
+- Full make verify and git diff --check passed on feat/pim-controller.

@@ -45,6 +45,7 @@ readonly -a POSITIVE_TESTS=(
     pim_command_validator_tb
     pim_vector_buffer_tb
     pim_mac_tb
+    pim_controller_tb
 )
 
 cd "$REPO_ROOT"
@@ -124,6 +125,13 @@ run_lint() {
     verilator --lint-only -Wall \
         --top-module pim_mac \
         rtl/pim_mac.sv
+
+    print_section "PIM controller RTL lint"
+
+    verilator --lint-only -Wall \
+        --top-module pim_controller \
+        rtl/pim_pkg.sv \
+        rtl/pim_controller.sv
 
     print_section "PIM vector buffer RTL lint"
 

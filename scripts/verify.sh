@@ -49,6 +49,7 @@ readonly -a POSITIVE_TESTS=(
     pim_accelerator_tb
     opencorex_pim_subsystem_tb
     opencorex_pim_matvec_tb
+    opencorex_pim_offload_tb
 )
 
 cd "$REPO_ROOT"

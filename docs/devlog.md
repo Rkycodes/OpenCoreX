@@ -312,3 +312,9 @@ Key Observation: the CPU rereads the same 16-word vector once per output column,
 - Ran the unchanged CPU-only matrix-vector program through the new top: all 32 outputs matched and completion remained at 23,685 active cycles.
 - Added subsystem lint and both system tests to `make verify`. The CPU-driven PIM benchmark program remains the next milestone.
 - Full `make verify` and `git diff --check` passed on `feat/pim-subsystem` before the commit and fast-forward review.
+
+- Generated a CPU-driven PIM offload program for the deterministic 1×16 by 16×32 workload, reusing the original operands and independent 32-output reference. The MMIO-base literal is isolated at 0x80 below the vector at 0x100.
+- The program writes all six descriptor fields, launches with COMMAND=1, checks STATUS for DONE without ERROR after the CPU unblocks, writes RKYC to 0x9C4, and remains in a self-loop.
+- End-to-end verification confirmed 32 correct results, unchanged inputs, 16 vector reads, 512 matrix reads, 32 output writes, MMIO isolation, PIM response routing, and CPU blocking through final output acceptance.
+- Measured 4,272 total CPU-program cycles, 4,141 accepted-START-to-final-output cycles, and 4,141 CPU blocked cycles on the current synchronous RAM model. These intervals overlap and are not additive.
+- Kept the 23,685-cycle CPU reference unchanged. This is a 32-bit functional prototype; the packed 8-bit D8 configuration remains later work.

@@ -113,10 +113,10 @@ Goal: build a synthesizable, technology-independent PIM prototype and run the sa
 - [x] Integrate the PIM requester with the existing round-robin memory interconnect
 - [ ] Verify randomized request stalls and 1–20-cycle read-response delays
 - [ ] Verify blocking CPU launch, completion, rejection, reuse, invalidation, and reset
-- [ ] Execute the `1 x 16` by `16 x 32` benchmark through the PIM path
-- [ ] Verify PIM results against the CPU/software reference
+- [x] Execute the `1 x 16` by `16 x 32` benchmark through the PIM path
+- [x] Verify PIM results against the CPU/software reference
 
-The CPU-driven PIM benchmark program is the next Milestone 3 step. The new subsystem already preserves the CPU-only 32-output, 23,685-cycle reference.
+The CPU-driven PIM benchmark and independent 32-output comparison are complete. The CPU-only 23,685-cycle reference remains unchanged; technology and packed-format characterization are later work.
 
 ## Research Milestone 4 — Characterization and CPU-vs-PIM Evaluation
 

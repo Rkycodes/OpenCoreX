@@ -111,8 +111,8 @@ Goal: build a synthesizable, technology-independent PIM prototype and run the sa
 - [x] Implement and verify the one-lane MAC using the CPU arithmetic semantics
 - [x] Implement and verify the PIM controller and response-bypass path
 - [x] Integrate the PIM requester with the existing round-robin memory interconnect
-- [ ] Verify randomized request stalls and 1–20-cycle read-response delays
-- [ ] Verify blocking CPU launch, completion, rejection, reuse, invalidation, and reset
+- [x] Verify randomized request stalls and 1–20-cycle read-response delays
+- [x] Verify blocking CPU launch, completion, rejection, reuse, invalidation, and reset
 - [x] Execute the `1 x 16` by `16 x 32` benchmark through the PIM path
 - [x] Verify PIM results against the CPU/software reference
 

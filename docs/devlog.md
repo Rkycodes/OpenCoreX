@@ -318,3 +318,9 @@ Key Observation: the CPU rereads the same 16-word vector once per output column,
 - End-to-end verification confirmed 32 correct results, unchanged inputs, 16 vector reads, 512 matrix reads, 32 output writes, MMIO isolation, PIM response routing, and CPU blocking through final output acceptance.
 - Measured 4,272 total CPU-program cycles, 4,141 accepted-START-to-final-output cycles, and 4,141 CPU blocked cycles on the current synchronous RAM model. These intervals overlap and are not additive.
 - Kept the 23,685-cycle CPU reference unchanged. This is a 32-bit functional prototype; the packed 8-bit D8 configuration remains later work.
+
+- Added a CPU-driven system-regression image that runs cold fill, warm REUSE_VECTOR, invalidation and refill, reuse mismatch, sticky-error START rejection, invalid vector length, STATUS_CLEAR, and valid recovery.
+- Verified each successful command against the independent 32-output reference. Cold/refill measured 16 vector reads, 512 weight reads, 32 writes, 16 buffer writes, 16 response bypasses, and 496 buffer reads; warm reuse measured zero vector reads and 512 buffer reads. Rejected commands made no PIM memory requests.
+- Added reset injection after an accepted output write; the RAM word persisted and the aborted PIM command made no request before a fresh CPU START.
+- Added an accelerator-boundary LFSR stress test with default seed 0x6D527C91 and alternate seed 0x00000001. It covered all 1–20-cycle ordered response delays, randomized request stalls, stable stalled payloads, single outstanding read, response ownership, exactly-once output writes, and a bounded watchdog.
+- Kept the integrated fixed-one-cycle RAM-adapter tests separate from variable-latency coverage. No RTL changes were needed.

@@ -306,3 +306,9 @@ Key Observation: the CPU rereads the same 16-word vector once per output column,
 - Implemented and independently verified the PIM controller: command snapshot, validation gate, vector fill/reuse with response bypass, variable-latency reads, MAC scheduling, and completion after final write acceptance.
 - Added controller lint and standalone test coverage to `make verify`; integration remains the next milestone.
 - Full make verify and git diff --check passed on feat/pim-controller.
+
+- Added `opencorex_pim_subsystem` as a separate top that connects the CPU, address router, accelerator, existing memory interconnect, and synchronous RAM adapter without changing the Phase 1 top or RAM protocol.
+- Added a CPU-driven system test for accepted START retirement, registered busy blocking, PIM request and response routing, CPU resume after final write acceptance, and reset persistence of an accepted RAM write.
+- Ran the unchanged CPU-only matrix-vector program through the new top: all 32 outputs matched and completion remained at 23,685 active cycles.
+- Added subsystem lint and both system tests to `make verify`. The CPU-driven PIM benchmark program remains the next milestone.
+- Full `make verify` and `git diff --check` passed on `feat/pim-subsystem` before the commit and fast-forward review.

@@ -47,6 +47,8 @@ readonly -a POSITIVE_TESTS=(
     pim_mac_tb
     pim_controller_tb
     pim_accelerator_tb
+    opencorex_pim_subsystem_tb
+    opencorex_pim_matvec_tb
 )
 
 cd "$REPO_ROOT"
@@ -172,6 +174,12 @@ run_lint() {
         rtl/opencorex_memory_subsystem.sv \
         rtl/register_file.sv \
         rtl/synchronous_memory_adapter.sv
+
+    print_section "OpenCoreX PIM subsystem RTL lint"
+
+    verilator --lint-only -Wall \
+        --top-module opencorex_pim_subsystem \
+        "${RTL_SOURCES[@]}"
 
     printf '\nPASS: RTL lint completed\n'
 }

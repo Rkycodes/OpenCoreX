@@ -104,17 +104,19 @@ Goal: build a synthesizable, technology-independent PIM prototype and run the sa
 
 - [x] Finalize module port lists and cycle-level MMIO timing
 - [x] Preserve `opencorex_memory_subsystem` as the Phase 1 transport baseline
-- [ ] Add a new integrated PIM subsystem and CPU RAM/MMIO address-routing boundary
+- [x] Add a new integrated PIM subsystem and CPU RAM/MMIO address-routing boundary
 - [x] Implement and verify `pim_mmio_regs`
 - [x] Implement and verify the sequential command validator
 - [x] Implement and verify the one-port synchronous vector buffer
 - [x] Implement and verify the one-lane MAC using the CPU arithmetic semantics
 - [x] Implement and verify the PIM controller and response-bypass path
-- [ ] Integrate the PIM requester with the existing round-robin memory interconnect
+- [x] Integrate the PIM requester with the existing round-robin memory interconnect
 - [ ] Verify randomized request stalls and 1–20-cycle read-response delays
 - [ ] Verify blocking CPU launch, completion, rejection, reuse, invalidation, and reset
 - [ ] Execute the `1 x 16` by `16 x 32` benchmark through the PIM path
 - [ ] Verify PIM results against the CPU/software reference
+
+The CPU-driven PIM benchmark program is the next Milestone 3 step. The new subsystem already preserves the CPU-only 32-output, 23,685-cycle reference.
 
 ## Research Milestone 4 — Characterization and CPU-vs-PIM Evaluation
 

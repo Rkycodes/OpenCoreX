@@ -43,6 +43,7 @@ readonly -a POSITIVE_TESTS=(
     opencorex_matvec_subsystem_tb
     pim_mmio_regs_tb
     pim_command_validator_tb
+    pim_vector_buffer_tb
 )
 
 cd "$REPO_ROOT"
@@ -116,6 +117,12 @@ run_lint() {
         --top-module pim_command_validator \
         rtl/pim_pkg.sv \
         rtl/pim_command_validator.sv
+
+    print_section "PIM vector buffer RTL lint"
+
+    verilator --lint-only -Wall \
+        --top-module pim_vector_buffer \
+        rtl/pim_vector_buffer.sv
 
     print_section "Synchronous memory adapter RTL lint"
 
@@ -320,6 +327,35 @@ run_expected_failure_tests() {
     fi
     printf 'PASS: validator second start failed for the expected reason\n'
 
+    test_build="$BUILD_ROOT/pim_vector_buffer_tb"
+    executable="$test_build/Vpim_vector_buffer_tb"
+
+    print_section "Build pim_vector_buffer_tb"
+
+    verilator --binary --timing -Wall \
+        --top-module pim_vector_buffer_tb \
+        --Mdir "$test_build" \
+        rtl/pim_vector_buffer.sv \
+        tb/pim_vector_buffer_tb.sv
+
+    run_vector_buffer_expected_failure "$executable" read_write \
+        "pim_vector_buffer: simultaneous read and write"
+    run_vector_buffer_expected_failure "$executable" begin_read \
+        "pim_vector_buffer: metadata operation with data port use"
+    run_vector_buffer_expected_failure "$executable" begin_write \
+        "pim_vector_buffer: metadata operation with data port use"
+    run_vector_buffer_expected_failure "$executable" invalidate_read \
+        "pim_vector_buffer: metadata operation with data port use"
+    run_vector_buffer_expected_failure "$executable" invalidate_write \
+        "pim_vector_buffer: metadata operation with data port use"
+    run_vector_buffer_expected_failure "$executable" begin_invalidate \
+        "pim_vector_buffer: simultaneous begin_vector and invalidate"
+    run_vector_buffer_expected_failure "$executable" read_oob \
+        "pim_vector_buffer: read index outside active vector"
+    run_vector_buffer_expected_failure "$executable" write_oob \
+        "pim_vector_buffer: write index outside active vector"
+    run_vector_buffer_expected_failure "$executable" bad_length \
+        "pim_vector_buffer: invalid vector length"
     printf '\nPASS: all expected-failure tests completed\n'
 }
 
@@ -347,6 +383,29 @@ run_mmio_expected_failure() {
     printf 'PASS: MMIO TEST=%s failed for the expected reason\n' "$test_name"
 }
 
+run_vector_buffer_expected_failure() {
+    local executable="$1"
+    local test_name="$2"
+    local expected_message="$3"
+    local log_file="$BUILD_ROOT/pim_vector_buffer_${test_name}.log"
+    local status
+
+    print_section "pim_vector_buffer_tb TEST=$test_name"
+    if "$executable" "+TEST=$test_name" >"$log_file" 2>&1; then
+        status=0
+    else
+        status=$?
+    fi
+
+    cat "$log_file"
+    if [[ "$status" -eq 0 ]]; then
+        fail "pim_vector_buffer_tb TEST=$test_name unexpectedly succeeded"
+    fi
+    if ! grep -Fq "$expected_message" "$log_file"; then
+        fail "pim_vector_buffer_tb TEST=$test_name produced the wrong failure"
+    fi
+    printf 'PASS: vector buffer TEST=%s failed for the expected reason\n' "$test_name"
+}
 clean_builds() {
     if [[ "$BUILD_ROOT" != "$REPO_ROOT/obj_dir/verification" ]]; then
         fail "refusing to remove unexpected build path: $BUILD_ROOT"

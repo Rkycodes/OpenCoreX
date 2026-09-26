@@ -106,7 +106,7 @@ Goal: build a synthesizable, technology-independent PIM prototype and run the sa
 - [ ] Preserve `opencorex_memory_subsystem` as the Phase 1 transport baseline
 - [ ] Add a new integrated PIM subsystem and CPU RAM/MMIO address-routing boundary
 - [ ] Implement and verify `pim_mmio_regs`
-- [ ] Implement and verify the sequential command validator
+- [x] Implement and verify the sequential command validator
 - [ ] Implement and verify the one-port synchronous vector buffer
 - [ ] Implement and verify the one-lane MAC using the CPU arithmetic semantics
 - [ ] Implement and verify the PIM controller and response-bypass path

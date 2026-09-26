@@ -293,3 +293,11 @@ Key Observation: the CPU rereads the same 16-word vector once per output column,
 - Compiled the package first in the regression and preserved the existing Phase 1 subsystem without changes.
 - Completed full Verilator 5.032 verification: RTL lint, 22 positive testbenches, and nine expected-failure cases passed.
 - Kept the roadmap's module-port-list item open: controller and accelerator interfaces still specify groups rather than finalized complete port lists.
+
+## 2026-09-26
+
+- Implemented the sequential PIM command validator with ten ordered checks, first-fault reporting, and no memory or buffer side effects.
+- Used widened unsigned half-open ranges; an exclusive endpoint of 0x1_0000_0000 is accepted, and the matrix span includes stride padding.
+- Added self-checking coverage for error priority, boundaries, overlap, reuse, reset, back-to-back commands, and one-entry parameters. A second start while busy is a simulation-fatal protocol violation.
+- Added standalone validator lint, the positive testbench, and the expected-failure test to the regression.
+- Completed the full `make verify` regression with Verilator 5.032.

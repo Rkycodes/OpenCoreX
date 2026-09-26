@@ -42,6 +42,7 @@ readonly -a POSITIVE_TESTS=(
     opencorex_memory_subsystem_tb
     opencorex_matvec_subsystem_tb
     pim_mmio_regs_tb
+    pim_command_validator_tb
 )
 
 cd "$REPO_ROOT"
@@ -108,6 +109,13 @@ run_lint() {
         --top-module pim_mmio_regs \
         rtl/pim_pkg.sv \
         rtl/pim_mmio_regs.sv
+
+    print_section "PIM command validator RTL lint"
+
+    verilator --lint-only -Wall \
+        --top-module pim_command_validator \
+        rtl/pim_pkg.sv \
+        rtl/pim_command_validator.sv
 
     print_section "Synchronous memory adapter RTL lint"
 
@@ -280,6 +288,37 @@ run_expected_failure_tests() {
         "ILLEGAL: PIM MMIO read at 40000018"
     run_mmio_expected_failure "$executable" read_only_write \
         "ILLEGAL: PIM MMIO write at 4000001c"
+
+    test_build="$BUILD_ROOT/pim_command_validator_tb"
+    executable="$test_build/Vpim_command_validator_tb"
+
+    print_section "Build pim_command_validator_tb"
+
+    verilator --binary --timing -Wall \
+        --top-module pim_command_validator_tb \
+        --Mdir "$test_build" \
+        rtl/pim_pkg.sv \
+        rtl/pim_command_validator.sv \
+        tb/pim_command_validator_tb.sv
+
+    print_section "pim_command_validator_tb TEST=start_busy"
+
+    if "$executable" +TEST=start_busy \
+            >"$BUILD_ROOT/pim_command_validator_start_busy.log" 2>&1; then
+        status=0
+    else
+        status=$?
+    fi
+
+    cat "$BUILD_ROOT/pim_command_validator_start_busy.log"
+    if [[ "$status" -eq 0 ]]; then
+        fail "pim_command_validator_tb TEST=start_busy unexpectedly succeeded"
+    fi
+    if ! grep -Fq "pim_command_validator: start while busy" \
+            "$BUILD_ROOT/pim_command_validator_start_busy.log"; then
+        fail "pim_command_validator_tb TEST=start_busy produced the wrong failure"
+    fi
+    printf 'PASS: validator second start failed for the expected reason\n'
 
     printf '\nPASS: all expected-failure tests completed\n'
 }

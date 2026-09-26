@@ -2,14 +2,14 @@
 
 ## Purpose
 
-This benchmark establishes the CPU-only baseline for future
-processing-in-memory (PIM) and accelerator studies.
+This benchmark establishes the CPU-only baseline used to compare the
+implemented 32-bit PIM accelerator and to guide later accelerator studies.
 
 It computes a 32-element output vector:
 
-\[
+$$
 y[j] = \sum_{i=0}^{15} x[i] \times W[i][j]
-\]
+$$
 
 where:
 
@@ -17,9 +17,10 @@ where:
 - `W` is a signed 16×32 matrix.
 - `y` is a signed 32-element output vector.
 
-The CPU executes all multiply-accumulate operations using scalar RV32IM
-instructions. A deterministic, mixed-sign input set is generated in software,
-and all 32 outputs are checked against an independent software reference.
+The CPU executes all multiply-accumulate operations with its supported
+RISC-V instruction subset and scalar `MUL`. A deterministic, mixed-sign input
+set is generated in software, and all 32 outputs are checked against
+an independent software reference.
 
 ## Memory Layout
 
@@ -35,13 +36,13 @@ and all 32 outputs are checked against an independent software reference.
 The matrix is stored so that the 16 weights required for one output are
 contiguous:
 
-\[
+$$
 \text{address}(W[i][j]) = 0x140 + 4 \times (16j + i)
-\]
+$$
 
 This layout makes each inner loop a sequential walk through one matrix column.
-It is deliberately explicit so that a later PIM implementation can use the
-same logical workload while changing only where computation occurs.
+The implemented PIM offload uses the same logical workload and memory layout;
+computation moves from CPU instructions to the accelerator.
 
 ## Register Allocation
 
@@ -125,7 +126,8 @@ The testbench checks:
 
 The CPU reads only 16 unique vector words, but rereads them 32 times for a
 total of 512 vector-memory reads. That reuse is a concrete data-movement
-opportunity for the future accelerator/PIM study.
+opportunity measured by the implemented PIM offload, which fetches the
+vector once on a cold command. See the [offload benchmark](pim_offload_1x16_16x32.md).
 
 ### Derived Performance Metrics
 

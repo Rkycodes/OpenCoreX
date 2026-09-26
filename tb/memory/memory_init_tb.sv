@@ -9,7 +9,7 @@ module memory_init_tb;
 
     memory #(
         .WORDS(1024),
-        .INIT_FILE("tb/memory_init.hex")
+        .INIT_FILE("tb/memory/memory_init.hex")
     ) dut (
         .clk(clk),
         .read_enable(read_enable),

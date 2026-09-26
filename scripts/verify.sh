@@ -11,9 +11,9 @@ readonly REPO_ROOT
 readonly BUILD_ROOT
 
 # Keep the shared package first, independent of shell glob ordering.
-RTL_SOURCES=(rtl/pim_pkg.sv)
-for rtl_source in rtl/*.sv; do
-    if [[ "$rtl_source" != rtl/pim_pkg.sv ]]; then
+RTL_SOURCES=(rtl/pim/pim_pkg.sv)
+for rtl_source in rtl/*/*.sv; do
+    if [[ "$rtl_source" != rtl/pim/pim_pkg.sv ]]; then
         RTL_SOURCES+=("$rtl_source")
     fi
 done
@@ -85,98 +85,98 @@ run_lint() {
 
     verilator --lint-only -Wall \
         --top-module opencorex_core \
-        rtl/alu.sv \
-        rtl/alu_decoder.sv \
-        rtl/controller.sv \
-        rtl/datapath.sv \
-        rtl/immediate_generator.sv \
-        rtl/opencorex_core.sv \
-        rtl/register_file.sv
+        rtl/cpu/alu.sv \
+        rtl/cpu/alu_decoder.sv \
+        rtl/cpu/controller.sv \
+        rtl/cpu/datapath.sv \
+        rtl/cpu/immediate_generator.sv \
+        rtl/cpu/opencorex_core.sv \
+        rtl/cpu/register_file.sv
 
     print_section "Memory RTL lint"
 
     verilator --lint-only -Wall \
         --top-module memory \
-        rtl/memory.sv
+        rtl/memory/memory.sv
 
     print_section "Memory interconnect RTL lint"
 
     verilator --lint-only -Wall \
         --top-module memory_interconnect \
-        rtl/memory_interconnect.sv
+        rtl/memory/memory_interconnect.sv
 
     print_section "CPU address router RTL lint"
 
     verilator --lint-only -Wall \
         --top-module cpu_address_router \
         -GRAM_WORDS=1024 \
-        rtl/cpu_address_router.sv
+        rtl/system/cpu_address_router.sv
 
     print_section "PIM MMIO RTL lint"
 
     verilator --lint-only -Wall \
         --top-module pim_mmio_regs \
-        rtl/pim_pkg.sv \
-        rtl/pim_mmio_regs.sv
+        rtl/pim/pim_pkg.sv \
+        rtl/pim/pim_mmio_regs.sv
 
     print_section "PIM command validator RTL lint"
 
     verilator --lint-only -Wall \
         --top-module pim_command_validator \
-        rtl/pim_pkg.sv \
-        rtl/pim_command_validator.sv
+        rtl/pim/pim_pkg.sv \
+        rtl/pim/pim_command_validator.sv
 
     print_section "PIM MAC RTL lint"
 
     verilator --lint-only -Wall \
         --top-module pim_mac \
-        rtl/pim_mac.sv
+        rtl/pim/pim_mac.sv
 
     print_section "PIM controller RTL lint"
 
     verilator --lint-only -Wall \
         --top-module pim_controller \
-        rtl/pim_pkg.sv \
-        rtl/pim_controller.sv
+        rtl/pim/pim_pkg.sv \
+        rtl/pim/pim_controller.sv
 
     print_section "PIM accelerator RTL lint"
 
     verilator --lint-only -Wall \
         --top-module pim_accelerator \
-        rtl/pim_pkg.sv \
-        rtl/pim_mmio_regs.sv \
-        rtl/pim_command_validator.sv \
-        rtl/pim_controller.sv \
-        rtl/pim_vector_buffer.sv \
-        rtl/pim_mac.sv \
-        rtl/pim_accelerator.sv
+        rtl/pim/pim_pkg.sv \
+        rtl/pim/pim_mmio_regs.sv \
+        rtl/pim/pim_command_validator.sv \
+        rtl/pim/pim_controller.sv \
+        rtl/pim/pim_vector_buffer.sv \
+        rtl/pim/pim_mac.sv \
+        rtl/pim/pim_accelerator.sv
 
     print_section "PIM vector buffer RTL lint"
 
     verilator --lint-only -Wall \
         --top-module pim_vector_buffer \
-        rtl/pim_vector_buffer.sv
+        rtl/pim/pim_vector_buffer.sv
 
     print_section "Synchronous memory adapter RTL lint"
 
     verilator --lint-only -Wall \
         --top-module synchronous_memory_adapter \
-        rtl/synchronous_memory_adapter.sv
+        rtl/memory/synchronous_memory_adapter.sv
 
     print_section "OpenCoreX memory subsystem RTL lint"
 
     verilator --lint-only -Wall \
         --top-module opencorex_memory_subsystem \
-        rtl/alu.sv \
-        rtl/alu_decoder.sv \
-        rtl/controller.sv \
-        rtl/datapath.sv \
-        rtl/immediate_generator.sv \
-        rtl/memory_interconnect.sv \
-        rtl/opencorex_core.sv \
-        rtl/opencorex_memory_subsystem.sv \
-        rtl/register_file.sv \
-        rtl/synchronous_memory_adapter.sv
+        rtl/cpu/alu.sv \
+        rtl/cpu/alu_decoder.sv \
+        rtl/cpu/controller.sv \
+        rtl/cpu/datapath.sv \
+        rtl/cpu/immediate_generator.sv \
+        rtl/memory/memory_interconnect.sv \
+        rtl/cpu/opencorex_core.sv \
+        rtl/system/opencorex_memory_subsystem.sv \
+        rtl/cpu/register_file.sv \
+        rtl/memory/synchronous_memory_adapter.sv
 
     print_section "OpenCoreX PIM subsystem RTL lint"
 
@@ -196,7 +196,7 @@ run_positive_tests() {
     mkdir -p "$BUILD_ROOT"
 
     for test_name in "${POSITIVE_TESTS[@]}"; do
-        testbench="tb/${test_name}.sv"
+        testbench=$(find tb -type f -name "${test_name}.sv" -print -quit)
         test_build="$BUILD_ROOT/$test_name"
         executable="$test_build/V${test_name}"
 
@@ -260,8 +260,8 @@ run_expected_failure_tests() {
     verilator --binary --timing -Wall \
         --top-module memory_error_tb \
         --Mdir "$test_build" \
-        rtl/memory.sv \
-        tb/memory_error_tb.sv
+        rtl/memory/memory.sv \
+        tb/memory/memory_error_tb.sv
 
     run_expected_failure \
         "$executable" \
@@ -286,8 +286,8 @@ run_expected_failure_tests() {
     verilator --binary --timing -Wall \
         --top-module cpu_address_router_tb \
         --Mdir "$test_build" \
-        rtl/cpu_address_router.sv \
-        tb/cpu_address_router_tb.sv
+        rtl/system/cpu_address_router.sv \
+        tb/system/cpu_address_router_tb.sv
 
     print_section "cpu_address_router_tb TEST=unmapped"
 
@@ -319,10 +319,10 @@ run_expected_failure_tests() {
     verilator --binary --timing -Wall \
         --top-module pim_mmio_regs_tb \
         --Mdir "$test_build" \
-        rtl/pim_pkg.sv \
-        rtl/pim_mmio_regs.sv \
-        rtl/cpu_address_router.sv \
-        tb/pim_mmio_regs_tb.sv
+        rtl/pim/pim_pkg.sv \
+        rtl/pim/pim_mmio_regs.sv \
+        rtl/system/cpu_address_router.sv \
+        tb/pim/pim_mmio_regs_tb.sv
 
     run_mmio_expected_failure "$executable" unaligned \
         "ILLEGAL: PIM MMIO read at 40000001"
@@ -343,9 +343,9 @@ run_expected_failure_tests() {
     verilator --binary --timing -Wall \
         --top-module pim_command_validator_tb \
         --Mdir "$test_build" \
-        rtl/pim_pkg.sv \
-        rtl/pim_command_validator.sv \
-        tb/pim_command_validator_tb.sv
+        rtl/pim/pim_pkg.sv \
+        rtl/pim/pim_command_validator.sv \
+        tb/pim/pim_command_validator_tb.sv
 
     print_section "pim_command_validator_tb TEST=start_busy"
 
@@ -374,8 +374,8 @@ run_expected_failure_tests() {
     verilator --binary --timing -Wall \
         --top-module pim_vector_buffer_tb \
         --Mdir "$test_build" \
-        rtl/pim_vector_buffer.sv \
-        tb/pim_vector_buffer_tb.sv
+        rtl/pim/pim_vector_buffer.sv \
+        tb/pim/pim_vector_buffer_tb.sv
 
     run_vector_buffer_expected_failure "$executable" read_write \
         "pim_vector_buffer: simultaneous read and write"

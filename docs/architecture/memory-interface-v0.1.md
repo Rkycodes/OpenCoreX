@@ -1,5 +1,12 @@
 # OpenCoreX Memory Request/Ready Interface v0.1
 
+## Status
+
+This is the original Phase 1 request/ready contract, written before the PIM
+engine. The interface and CPU-only subsystem remain implemented; the later
+PIM integration is in [`opencorex_pim_subsystem.sv`](../../rtl/system/opencorex_pim_subsystem.sv).
+Future-tense references below preserve the original design context.
+
 ## Purpose
 
 This document defines the first stallable shared-memory interface for OpenCoreX.
@@ -656,6 +663,6 @@ The following questions remain open for discussion with Professor Yang:
 ## References
 
 - [OpenCoreX architecture](architecture-v0.1.md)
-- [OpenCoreX evaluation methodology](evaluation-methodology.md)
-- [`rtl/memory.sv`](../rtl/memory.sv)
+- [OpenCoreX evaluation methodology](../evaluation/evaluation-methodology.md)
+- [`rtl/memory/memory.sv`](../../rtl/memory/memory.sv)
 - [Arm, Introduction to AMBA AXI4](https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/Learn%20the%20Architecture/102202_0100_01_Introduction_to_AMBA_AXI.pdf?revision=369ad681-f926-47b0-81be-42813d39e132)

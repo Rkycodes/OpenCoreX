@@ -11,11 +11,28 @@ across CPU-only, blocking-PIM, and nonblocking-PIM configurations.
 
 The current reference benchmark is:
 
-- [`programs/matvec_1x16_16x32.md`](../programs/matvec_1x16_16x32.md)
+- [`programs/matvec_1x16_16x32.md`](../../programs/matvec_1x16_16x32.md)
 
 The executable measurement logic is implemented in:
 
-- [`tb/opencorex_matvec_tb.sv`](../tb/opencorex_matvec_tb.sv)
+- [CPU-only benchmark test](../../tb/benchmarks/opencorex_matvec_tb.sv)
+- [CPU-driven PIM benchmark test](../../tb/benchmarks/opencorex_pim_offload_tb.sv)
+
+## Current implementation and comparison boundary
+
+The CPU-only matrix-vector program records **23,685 active cycles** through
+its completion write. The CPU-driven 32-bit PIM offload program records
+**4,272 total CPU-program cycles** and **4,141 cycles from accepted `START`
+to the final output write**. Its cold traffic is 16 vector reads, 512 matrix
+reads, and 32 output writes. These are separate event boundaries; the offload
+interval does not include the CPU's descriptor setup or completion code. See
+the [offload benchmark](../../programs/pim_offload_1x16_16x32.md) and
+[system regression](../verification/pim-system-regression.md).
+
+These observations are for the implemented single-lane 32-bit functional
+prototype. Packed 8-bit D8 and SRAM/RRAM CIM are proposed comparisons and
+must not be labeled as measured implementations. Physical area, energy, and
+technology results are not established by these RTL cycle counts.
 
 ## Source-of-Truth Hierarchy
 

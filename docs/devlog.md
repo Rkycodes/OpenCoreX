@@ -155,7 +155,7 @@
 ## 2026-09-02
 - it's been a while, school started and it has been busy
 - audited the datapath_tb for verification coverage
-- implemented `rtl/opencorex_core.sv` as a wrapper connecting the controller and datapath
+- implemented `rtl/cpu/opencorex_core.sv` as a wrapper connecting the controller and datapath
 - linted the core and came back clean
 - next: build the `opencorex_core_tb.sv`, connect the core to synchrnous memory and execute complete v0.1 instructions to prove functionality
 
@@ -186,13 +186,13 @@
   - 129,530 illegal encodings
   - 131,072 total encodings
 - created `programs/hex/scalar_mul.hex` and documented it in `programs/scalar_mul.md`
-- created `tb/opencorex_mul_tb.sv` for end-to-end MUL verification
+- created `tb/cpu/opencorex_mul_tb.sv` for end-to-end MUL verification
 - verified positive, negative, negative-times-negative, zero, low-word truncation, and `x0` destination behavior
 - completed the scalar MUL integration test successfully at cycle 68
 - added `opencorex_mul_tb` to the automated regression
 - completed warning-free RTL lint and passed the full regression with 13 positive testbenches and three expected-failure memory tests
-- preserved the original processor specification as `docs/architecture-v0.1.md`
-- documented the multiplier architecture and research timing assumptions in `docs/scalar-mul-extension.md`
+- preserved the original processor specification as `docs/architecture/architecture-v0.1.md`
+- documented the multiplier architecture and research timing assumptions in `docs/architecture/scalar-mul-extension.md`
 
 ## 2026-09-14
 - implemented BNE support using the existing branch target and sub paths
@@ -264,7 +264,7 @@ Key Observation: the CPU rereads the same 16-word vector once per output column,
 - Defined completion as acceptance of the final output write and reset as non-transactional: accepted RAM writes persist.
 - Defined module-level verification, golden arithmetic comparison, randomized 1–20-cycle response delay, parameter sweeps, reset injection, protocol assertions, and reuse tests.
 - Preserved `opencorex_memory_subsystem` as the verified Phase 1 baseline and selected a separate PIM integration top for the next milestone.
-- Recorded the version-1 architecture in `docs/pim-architecture-v0.1.md`.
+- Recorded the version-1 architecture in `docs/architecture/pim-architecture-v0.1.md`.
 - Added parameterized cpu_address_router to decode CPU requests between RAM and the PIM MMIO page.
 - Defined half-open address windows for RAM and MMIO using widened arthmetic to prevent 32-bit range clculations from warpping.
 - Added simulation time checks that reject zero-sized or overlapping address windows
@@ -324,3 +324,12 @@ Key Observation: the CPU rereads the same 16-word vector once per output column,
 - Added reset injection after an accepted output write; the RAM word persisted and the aborted PIM command made no request before a fresh CPU START.
 - Added an accelerator-boundary LFSR stress test with default seed 0x6D527C91 and alternate seed 0x00000001. It covered all 1–20-cycle ordered response delays, randomized request stalls, stable stalled payloads, single outstanding read, response ownership, exactly-once output writes, and a bounded watchdog.
 - Kept the integrated fixed-one-cycle RAM-adapter tests separate from variable-latency coverage. No RTL changes were needed.
+
+## Repository layout update — September 26, 2026
+
+Reorganized RTL, testbenches, and architecture/verification/evaluation
+documents by subsystem. Updated verification source discovery and path
+references without changing RTL behavior, test expectations, or generated
+benchmark images. The root README and [documentation index](README.md) now
+describe the implemented 32-bit PIM system and distinguish it from proposed
+packed 8-bit and CIM research.

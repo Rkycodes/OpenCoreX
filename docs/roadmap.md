@@ -26,6 +26,12 @@
 
 ## Research Direction — Decisions through September 24, 2026
 
+This section preserves the decisions recorded on that date. The 32-bit
+functional PIM RTL and integrated subsystem have since been implemented and
+verified; see the milestone checklists below and the
+[documentation index](README.md). Packed 8-bit D8 and CIM studies remain
+proposed work.
+
 The next phase of OpenCoreX is benchmark-driven PIM research rather than completing full RV32I or RV32M first.
 
 - The PIM block will begin as a coprocessor-style unit controlled by the CPU.
@@ -96,7 +102,7 @@ Goal: define the CPU-to-PIM contract, local-buffer behavior, and verification bo
 - [x] Reserve nonblocking execution, interrupts, memory-fault responses, multiple reads, multiple lanes, and tiling for later versions
 - [x] Define the initial verification strategy and parameter corner cases
 
-The version-1 contract is specified in [`pim-architecture-v0.1.md`](pim-architecture-v0.1.md).
+The version-1 contract is specified in [`pim-architecture-v0.1.md`](architecture/pim-architecture-v0.1.md).
 
 ## Research Milestone 3 — Functional PIM RTL
 

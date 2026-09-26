@@ -2,10 +2,13 @@
 
 ## Status and Scope
 
-This document defines the planned module boundaries and cycle-level contracts
-for the first functional PIM RTL. It supplements
-[`pim-architecture-v0.1.md`](pim-architecture-v0.1.md). It is an interface
-specification, not an RTL implementation.
+This September 24, 2026 interface contract records the module boundaries and
+cycle-level behavior selected before the first functional PIM RTL. It
+supplements [`pim-architecture-v0.1.md`](pim-architecture-v0.1.md).
+The modules are now implemented in [`rtl/pim/`](../../rtl/pim/) and
+[`rtl/system/`](../../rtl/system/); this document remains the dated
+interface specification. See the [system regression](../verification/pim-system-regression.md)
+for implemented coverage.
 
 All modules use:
 
@@ -16,7 +19,7 @@ All modules use:
 - no response backpressure in version 1.
 
 The existing `opencorex_memory_subsystem` remains unchanged as the verified
-Phase 1 baseline. New files are integrated through a separate
+Phase 1 baseline. The PIM modules are integrated through the separate
 `opencorex_pim_subsystem` top.
 
 ## Shared Definitions: `pim_pkg.sv`
@@ -422,7 +425,7 @@ Its external RAM and CPU-error ports remain compatible with
 testbench patterns can be reused. The old subsystem is not removed or silently
 changed.
 
-## Implementation and Verification Order
+## Original Implementation and Verification Order (completed)
 
 1. Implement `pim_pkg.sv` definitions and compile-order support.
 2. Implement and unit-test `cpu_address_router`.
@@ -442,5 +445,5 @@ busy high in the following cycle, and the CPU's next request blocked until
 completion or rejection. The MMIO/router unit test alone does not establish
 the controller's registered transition.
 
-RTL implementation does not begin until the port names, widths, timing, and
-ownership in this document have been reviewed for consistency.
+This original review gate preceded RTL implementation. Current source and
+tests are authoritative for the implemented behavior.

@@ -9,7 +9,7 @@ It provides the CPU multiplication operation required for the scalar `1 × 16` v
 The frozen v0.1 processor architecture remains documented in:
 
 ```text
-docs/architecture-v0.1.md
+docs/architecture/architecture-v0.1.md
 ```
 
 ## Instruction Encoding
@@ -157,21 +157,21 @@ This prevents the CPU-versus-PIM comparison from overstating or understating per
 
 Verification is divided across four levels:
 
-1. `tb/alu_tb.sv`
+1. `tb/cpu/alu_tb.sv`
    - Positive multiplication
    - Negative operand
    - Low-word truncation
    - `Zero` output
 
-2. `tb/alu_decoder_tb.sv`
+2. `tb/cpu/alu_decoder_tb.sv`
    - Exact MUL decoding
    - Rejection of nearby unsupported encodings
 
-3. `tb/controller_tb.sv`
+3. `tb/cpu/controller_tb.sv`
    - MUL follows the R-type control sequence
    - Exhaustive legality testing includes exactly one new encoding
 
-4. `tb/opencorex_mul_tb.sv`
+4. `tb/cpu/opencorex_mul_tb.sv`
    - End-to-end instruction execution
    - Positive, negative, zero, and truncation cases
    - Destination register `x0`

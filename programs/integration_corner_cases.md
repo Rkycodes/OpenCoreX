@@ -106,6 +106,6 @@ This program covers:
 
 Related exceptional behavior is covered separately:
 
-- `tb/opencorex_illegal_tb.sv` verifies illegal instructions and sticky `ERROR` behavior.
-- `tb/memory_error_tb.sv` verifies misaligned, out-of-range, and simultaneous memory requests.
-- `tb/opencorex_reset_tb.sv` verifies reset during execution and successful restart.
+- `tb/cpu/opencorex_illegal_tb.sv` verifies illegal instructions and sticky `ERROR` behavior.
+- `tb/memory/memory_error_tb.sv` verifies misaligned, out-of-range, and simultaneous memory requests.
+- `tb/cpu/opencorex_reset_tb.sv` verifies reset during execution and successful restart.

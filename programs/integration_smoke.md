@@ -162,9 +162,9 @@ This smoke test covers one legal end-to-end execution path through every instruc
 
 Companion verification covers:
 
-- Legal architectural corner cases in `tb/opencorex_corner_cases_tb.sv`
-- Illegal instructions and sticky `ERROR` behavior in `tb/opencorex_illegal_tb.sv`
-- Misaligned, out-of-range, and simultaneous memory operations in `tb/memory_error_tb.sv`
-- Reset during execution and restart behavior in `tb/opencorex_reset_tb.sv`
+- Legal architectural corner cases in `tb/cpu/opencorex_corner_cases_tb.sv`
+- Illegal instructions and sticky `ERROR` behavior in `tb/cpu/opencorex_illegal_tb.sv`
+- Misaligned, out-of-range, and simultaneous memory operations in `tb/memory/memory_error_tb.sv`
+- Reset during execution and restart behavior in `tb/cpu/opencorex_reset_tb.sv`
 - Detailed module behavior in the standalone RTL testbenches
-- Exhaustive instruction-decode legality in `tb/controller_tb.sv`
+- Exhaustive instruction-decode legality in `tb/cpu/controller_tb.sv`

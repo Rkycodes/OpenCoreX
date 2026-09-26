@@ -1,146 +1,47 @@
 # OpenCoreX
 
-## Overview
+OpenCoreX is a simulation-focused SystemVerilog project with a multicycle RISC-V CPU, a 32-bit MMIO-controlled processing-in-memory (PIM) accelerator, and a verified shared-memory subsystem. The current matrix-vector workload is a `1 x 16` vector multiplied by a `16 x 32` matrix, producing 32 checked output words.
 
-OpenCoreX is a long-term hardware engineering portfolio project focused on modern CPU architecture, RTL design, computer architecture, verification, FPGA development, ASIC concepts, and AI hardware acceleration.
+## Implemented hardware
 
-## Initial Milestone
+The non-pipelined CPU executes `ADD`, `SUB`, `AND`, `OR`, `XOR`, `ADDI`, `LW`, `SW`, `BEQ`, `BNE`, `JAL`, and scalar `MUL`. It uses a multicycle controller, register file, and a synchronous unified memory interface. Illegal instructions enter a sticky error state that reset clears. This is a defined subset, not a complete RV32I or RV32IM implementation.
 
-OpenCoreX v0.1 is a simulation-only, non-pipelined, multicycle processor written in SystemVerilog. It implements a defined 10-instruction subset of the 32-bit RV32I base instruction set.
+The PIM accelerator uses an MMIO page at `0x4000_0000` for descriptors, command, status, and vector-buffer control. Its validator rejects invalid descriptors before memory traffic. A single MAC lane computes 32-bit wraparound results, and a 16-word private vector buffer supports cold fill and warm reuse. The CPU's accepted `START` store completes before later CPU requests stall; the CPU resumes after PIM completion or rejection. The [integrated subsystem](rtl/system/opencorex_pim_subsystem.sv) routes CPU MMIO separately from RAM and connects the CPU and PIM requesters through the existing memory interconnect and synchronous adapter. The [CPU-only subsystem](rtl/system/opencorex_memory_subsystem.sv) remains available as the Phase 1 baseline.
 
-The milestone focuses on architectural understanding, control sequencing, synthesizable RTL, synchronous-memory integration, and self-checking verification. OpenCoreX v0.1 is not a complete RV32I implementation.
+## Verified benchmarks
 
-## Supported Instructions
+The deterministic matrix-vector benchmark checks all 32 outputs against an independent software reference and checks preservation of the inputs. The CPU-only program completes in **23,685 active cycles**. The CPU-driven PIM offload program completes in **4,272 total CPU-program cycles**, including **4,141 cycles from accepted `START` to the final output write**. Cold PIM traffic is 16 vector reads, 512 matrix reads, and 32 output writes. These are simulation cycle and transaction counts for this specific 32-bit functional prototype, not energy, area, technology, or packed 8-bit D8 results.
 
-OpenCoreX v0.1 supports 10 instructions:
+See the [benchmark specification](programs/matvec_1x16_16x32.md), [PIM offload program](programs/pim_offload_1x16_16x32.md), [evaluation methodology](docs/evaluation/evaluation-methodology.md), and [system regression record](docs/verification/pim-system-regression.md) for measurement boundaries and coverage.
 
-- `ADD`
-- `SUB`
-- `AND`
-- `OR`
-- `XOR`
-- `ADDI`
-- `LW`
-- `SW`
-- `BEQ`
-- `JAL`
+## Run verification
 
-## Current Status
-
-OpenCoreX v0.1 is complete and functionally verified in Verilator.
-
-The integrated processor contains:
-
-- ALU
-- ALU decoder
-- Immediate generator
-- Register file
-- Synchronous single-port unified memory
-- 16-state multicycle controller
-- Multicycle datapath
-- Top-level processor wrapper
-
-## Architecture
-
-OpenCoreX uses a multicycle architecture that reuses major hardware resources across several clock cycles.
-
-Key architectural features include:
-
-- Eight internal datapath registers: `PC`, `OldPC`, `PCPlus4`, `IR`, `A`, `B`, `ALUOut`, and `MDR`
-- A 16-state multicycle controller
-- Synchronous single-port unified instruction and data memory
-- Asynchronous register-file reads and synchronous writes
-- Explicit write enables for every multicycle datapath register
-- Conditional branch updates using `PCWriteCond` and the ALU `Zero` result
-- Safe-zero behavior for unsupported MUX and ALU-control encodings
-- Sticky illegal-instruction handling with reset recovery
-
-Detailed architecture, control sequencing, MUX encodings, and instruction paths are documented in [`docs/architecture.md`](docs/architecture.md).
-
-## Verification
-
-Every RTL module has a self-checking SystemVerilog testbench. The controller, datapath, and complete processor also have dedicated integration tests.
-
-Verification includes:
-
-- Directed ALU and decoder tests
-- Immediate-generation boundary tests
-- Full writable register-file coverage
-- Synchronous memory reads, writes, and initialization
-- Memory alignment and range protection
-- Simultaneous memory read/write rejection
-- Exhaustive controller decode across all 131,072 `{opcode, funct3, funct7}` combinations
-- Cycle-level datapath control and writeback tests
-- End-to-end execution of all 10 supported instructions
-- Taken and not-taken branches
-- Forward and backward branches and jumps
-- Negative immediates and arithmetic results
-- Architectural `x0` behavior
-- Illegal-instruction detection and sticky `ERROR` behavior
-- Reset during an in-flight instruction
-- Restart and successful program completion after reset
-- Clean Verilator RTL lint with `-Wall`
-- A passing regression across all 13 positive testbenches
-- Three validated expected-failure memory tests
-
-The integration programs use an external synchronous memory initialized from hexadecimal files under `programs/hex/`. Successful programs write the completion signature `0x524B5943` (`RKYC`) to byte address `0xBC`.
-
-OpenCoreX v0.1 verifies its defined 10-instruction subset. It does not claim complete RV32I compliance, privileged architecture support, exception handling, or hardware traps for invalid memory accesses.
-
-## Running Verification
-
-OpenCoreX provides a one-command verification flow for Linux and WSL.
-
-### Prerequisites
-
-- Verilator 5.x
-- GNU Make
-- A C++ compiler
-- Bash
-
-Run the complete verification suite from the repository root:
+Use Linux or WSL with Verilator 5.x, GNU Make, Bash, and a C++ compiler. From the repository root:
 
 ```bash
 make verify
 ```
- 
-## Roadmap
 
-### v0.1 — Integrated Multicycle Core — Complete
+The full target runs RTL lint, positive self-checking testbenches, and expected-failure memory tests. Individual targets are `make lint`, `make test`, and `make test-errors`. Tests cover CPU execution and reset, memory protocol and faults, PIM modules and variable-latency request behavior, shared-memory integration, CPU-driven system regression, and both benchmark programs. Program images are generated under `programs/hex/` by the generators in `scripts/`.
 
-- Integrated the controller, datapath, register file, and unified memory
-- Executed complete programs containing all 10 supported instructions
-- Verified legal execution, memory operations, control flow, illegal instructions, and reset recovery
-- Completed warning-free RTL lint and the full manual regression
+## Repository layout
 
-### v0.2 — Verification Infrastructure
+| Path | Contents |
+|---|---|
+| `rtl/cpu/` | CPU datapath, control, ALU, and register file |
+| `rtl/memory/` | RAM, memory interconnect, and synchronous adapter |
+| `rtl/pim/` | PIM package, MMIO, validation, buffer, MAC, controller, and wrapper |
+| `rtl/system/` | CPU address router and CPU-only/PIM subsystem tops |
+| `tb/cpu/`, `tb/memory/`, `tb/pim/`, `tb/system/` | Unit and subsystem testbenches |
+| `tb/benchmarks/` | CPU and PIM workload testbenches |
+| `programs/` | Program generators, workload notes, and generated images in `programs/hex/` |
+| `docs/architecture/` | Architecture and historical interface decisions; diagrams in `diagrams/` |
+| `docs/verification/`, `docs/evaluation/` | Coverage records and measurement methodology |
+| `docs/roadmap.md`, `docs/devlog.md` | Current plan and chronological development record |
 
-- Automated regression scripts
-- Repository-wide lint
-- GitHub Actions continuous integration
-- Initial architectural assertions
+Start with the [documentation index](docs/README.md) or the [roadmap](docs/roadmap.md). Some architecture documents are dated design records; their status notes distinguish the original proposal from the implemented RTL. Benchmark tests are grouped under `tb/benchmarks/` because they exercise complete programs and multiple hardware layers.
 
-### v0.3 — RV32I Expansion
+## Research boundary
 
-- Expand the supported instruction set to approximately 30 useful RV32I instructions
-- Add the remaining branch, load/store, arithmetic, and logical operations
-
-### v0.4 — Accelerator and PIM Work
-
-- Explore accelerator integration
-- Develop processing-in-memory experiments
-- Study memory capacity, data movement, scheduling, utilization, and throughput
-
-## Long-Term Direction
-
-OpenCoreX is intended to grow beyond the initial multicycle processor. Future work may include RV32M support, pipelining, caches, AXI4-based interconnects, FPGA peripherals, accelerator interfaces, and research-inspired processing-in-memory extensions.
-
-A parallel system-level modeling effort will explore compact PIM architectures using Python. It will study architectural tradeoffs involving memory capacity, data movement, scheduling, pipeline utilization, and throughput.
-
-## Project Goals
-
-- Understand every architectural and RTL design decision
-- Develop strong SystemVerilog and verification practices
-- Translate architectural specifications into cycle-accurate hardware
-- Build toward FPGA, ASIC, CPU-design, and AI-hardware engineering work
+The present PIM design is a blocking, single-lane, 32-bit functional model with one outstanding PIM read. The integrated RAM adapter returns reads after a fixed cycle; a separate accelerator test covers ordered variable-latency responses. Packed 8-bit D8, SRAM/RRAM CIM variants, physical area and energy modeling, caches, nonblocking CPU/PIM execution, and full ISA compliance remain future work. See the [roadmap](docs/roadmap.md) for planned studies.
 

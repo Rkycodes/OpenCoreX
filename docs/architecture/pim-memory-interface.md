@@ -2,13 +2,14 @@
 
 ## Status
 
-This document defines the verified Phase 1 memory interface between the
-OpenCoreX CPU, a future PIM requester, and the existing unified single-port
-memory.
-
-Phase 1 establishes the communication and arbitration substrate. It does not
-yet implement the PIM compute engine, PIM MMIO registers, or completion
-synchronization.
+This document records the verified Phase 1 memory interface, originally
+designed for the OpenCoreX CPU and a future PIM requester. Its Phase 1 scope
+and future-tense design language below are historical, as of September 2026.
+The later 32-bit PIM engine, MMIO registers, and completion synchronization are
+implemented in [`rtl/pim/`](../../rtl/pim/) and the
+[`opencorex_pim_subsystem`](../../rtl/system/opencorex_pim_subsystem.sv).
+The preserved [Phase 1 subsystem](../../rtl/system/opencorex_memory_subsystem.sv)
+still provides the CPU-only comparison boundary.
 
 The design currently assumes:
 
@@ -287,7 +288,7 @@ The Phase 1 tests cover the following architectural properties:
 - reset restarts the CPU and protocol state without erasing RAM,
 - the CPU-only matrix-vector baseline is preserved through the subsystem.
 
-## What Phase 1 Does Not Yet Provide
+## Phase 1 Scope at the Time
 
 - A PIM compute datapath or execution FSM
 - PIM command encoding or custom instruction decoding
@@ -337,7 +338,7 @@ directly extend this Phase 1 transport are:
 
 ### Required integration change
 
-The current `opencorex_memory_subsystem` connects every CPU request directly
+The Phase 1 `opencorex_memory_subsystem` connected every CPU request directly
 to the RAM interconnect. MMIO therefore requires an address-routing boundary
 before that interconnect:
 
@@ -347,12 +348,12 @@ before that interconnect:
 - the PIM engine remains a requester on the existing PIM interconnect port.
 
 The verified Phase 1 subsystem remains as the transport baseline. A new PIM
-integration top will compose the core, address-routing boundary, accelerator,
+integration top now composes the core, address-routing boundary, accelerator,
 existing interconnect, and memory adapter.
 
 ### Variable-latency boundary
 
-The PIM controller will tolerate arbitrary response delay with one
+The implemented PIM controller tolerates arbitrary response delay with one
 outstanding read. The current shared interconnect and synchronous adapter
 remain fixed-latency Phase 1 components until the system-level memory contract
 is deliberately extended. Supporting arbitrary latency throughout the whole
@@ -372,13 +373,13 @@ adding ordered ownership storage.
 
 ## Sources and Research Context
 
-- OpenCoreX repository files: `rtl/memory_interconnect.sv`,
-  `rtl/synchronous_memory_adapter.sv`, `rtl/opencorex_memory_subsystem.sv`,
-  `rtl/opencorex_core.sv`, and `rtl/controller.sv`.
-- OpenCoreX verification files: `tb/memory_interconnect_tb.sv`,
-  `tb/synchronous_memory_adapter_tb.sv`, `tb/memory_subsystem_tb.sv`,
-  `tb/opencorex_memory_subsystem_tb.sv`, and
-  `tb/opencorex_matvec_subsystem_tb.sv`.
+- OpenCoreX repository files: `rtl/memory/memory_interconnect.sv`,
+  `rtl/memory/synchronous_memory_adapter.sv`, `rtl/system/opencorex_memory_subsystem.sv`,
+  `rtl/cpu/opencorex_core.sv`, and `rtl/cpu/controller.sv`.
+- OpenCoreX verification files: `tb/memory/memory_interconnect_tb.sv`,
+  `tb/memory/synchronous_memory_adapter_tb.sv`, `tb/memory/memory_subsystem_tb.sv`,
+  `tb/system/opencorex_memory_subsystem_tb.sv`, and
+  `tb/benchmarks/opencorex_matvec_subsystem_tb.sv`.
 - RISC-V International, [Unprivileged ISA Specification](https://docs.riscv.org/reference/isa/unpriv/unpriv-index.html), for standard instruction formats and the rules surrounding ISA extensions.
 - Arm, [AMBA AXI and ACE Protocol Specification](https://developer.arm.com/documentation/ihi0022/latest/), as a reference for ready/valid channel reasoning. OpenCoreX does not claim AXI compliance.
 - Mosanu et al., [PiMulator: A Fast and Flexible Processing-in-Memory Emulation Platform](https://ieeexplore.ieee.org/document/9774614), for FPGA-oriented PIM system and memory modeling.

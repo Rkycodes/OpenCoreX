@@ -2,9 +2,15 @@
 
 ## Status
 
-This document defines the selected version-1 PIM architecture as of September
-24, 2026. It is the implementation contract for the next RTL milestone. The
-existing functional PIM RTL has not yet been written.
+This document records the selected version-1 PIM architecture as of September
+24, 2026. Its original implementation plan is retained as a dated design
+decision. The 32-bit functional RTL is now implemented in
+[`rtl/pim/`](../../rtl/pim/) and integrated by
+[`opencorex_pim_subsystem.sv`](../../rtl/system/opencorex_pim_subsystem.sv).
+The implemented tests are under [`tb/pim/`](../../tb/pim/),
+[`tb/system/`](../../tb/system/), and
+[`tb/benchmarks/`](../../tb/benchmarks/). Proposed packed 8-bit D8 and
+CIM variants remain separate research work.
 
 The detailed evaluation plan remains deferred until the next advisor meeting.
 NeuroSim exploration begins with SRAM and then extends to RRAM if feasible.
@@ -363,12 +369,12 @@ failures remain simulation-fatal until the memory response channel and CPU gain
 fault status. Error values for future memory fault and timeout reporting are
 already reserved.
 
-## Planned Module Boundaries
+## Module Boundaries (implemented)
 
 | Module | Responsibility |
 |---|---|
 | `opencorex_memory_subsystem` | Preserved verified Phase 1 baseline |
-| New PIM integration top | Compose CPU, address routing, PIM accelerator, interconnect, and adapter |
+| `opencorex_pim_subsystem` | Compose CPU, address routing, PIM accelerator, interconnect, and adapter |
 | `cpu_address_router` | Decode RAM, PIM MMIO, and invalid CPU addresses; route ready and read responses; enforce blocking after launch |
 | `pim_accelerator` | MMIO-slave and memory-requester integration boundary |
 | `pim_mmio_regs` | Programming registers, register decode, and accepted-command pulse |
@@ -380,9 +386,9 @@ already reserved.
 The controller snapshots MMIO configuration into active-command registers on
 an accepted start. MMIO configuration is not a live input to an active command.
 
-## Planned Implementation Order
+## Original Implementation Order (completed)
 
-Each module is implemented and independently verified before its consumer:
+The original sequence below was completed with module and integration tests:
 
 1. `pim_pkg` architectural definitions and build ordering
 2. `cpu_address_router`
@@ -405,7 +411,7 @@ before any module that imports it rather than relying on wildcard order.
 ## Verification Contract
 
 Verification proceeds from unit modules to controller and full-system tests.
-The initial plan includes:
+The original verification plan called for:
 
 - a golden arithmetic model matching CPU wraparound semantics,
 - randomized request stalls and ordered response delays from 1–20 cycles,

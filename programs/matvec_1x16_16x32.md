@@ -4,6 +4,9 @@
 
 This benchmark establishes the CPU-only baseline used to compare the
 implemented 32-bit PIM accelerator and to guide later accelerator studies.
+The [16×32 CPU diagnostics](matvec_1x16_16x32_cpu_diagnostics.md) add
+unrolled streaming and register-resident measurements without replacing
+this looped reference program.
 
 It computes a 32-element output vector:
 

@@ -50,6 +50,7 @@ readonly -a POSITIVE_TESTS=(
     opencorex_pim_subsystem_tb
     opencorex_pim_matvec_tb
     opencorex_pim_offload_tb
+    opencorex_pim_cold_warm_tb
     opencorex_pim_system_regression_tb
     pim_accelerator_random_tb
 )
@@ -217,6 +218,51 @@ run_positive_tests() {
 
     printf '\nPASS: all %d positive testbenches completed\n' \
         "${#POSITIVE_TESTS[@]}"
+}
+
+run_matvec_diagnostics() {
+    local streaming
+    local subsystem
+    local mode
+    local path
+    local test_build
+    local executable
+
+    mkdir -p "$BUILD_ROOT"
+
+    for streaming in 0 1; do
+        for subsystem in 0 1; do
+            mode=resident
+            path=direct
+            if [[ "$streaming" -eq 1 ]]; then mode=streaming; fi
+            if [[ "$subsystem" -eq 1 ]]; then path=subsystem; fi
+            test_build="$BUILD_ROOT/matvec_${mode}_${path}"
+            executable="$test_build/Vopencorex_matvec_diagnostic_tb"
+            print_section "matvec_${mode}_${path}"
+            verilator --binary --timing -Wall \
+                --top-module opencorex_matvec_diagnostic_tb \
+                -GSTREAMING="$streaming" -GSUBSYSTEM="$subsystem" \
+                --Mdir "$test_build" \
+                "${RTL_SOURCES[@]}" \
+                tb/benchmarks/opencorex_matvec_diagnostic_tb.sv
+            "$executable"
+        done
+    done
+}
+
+run_pim_cold_warm_test() {
+    local test_name=opencorex_pim_cold_warm_tb
+    local test_build="$BUILD_ROOT/$test_name"
+    local executable="$test_build/V${test_name}"
+
+    mkdir -p "$BUILD_ROOT"
+    print_section "$test_name"
+    verilator --binary --timing -Wall \
+        --top-module "$test_name" \
+        --Mdir "$test_build" \
+        "${RTL_SOURCES[@]}" \
+        "tb/benchmarks/${test_name}.sv"
+    "$executable"
 }
 
 run_expected_failure() {
@@ -460,6 +506,14 @@ clean_builds() {
 command_name="${1:-verify}"
 
 case "$command_name" in
+    diagnostics)
+        check_dependencies
+        run_matvec_diagnostics
+        ;;
+    cold-warm)
+        check_dependencies
+        run_pim_cold_warm_test
+        ;;
     lint)
         check_dependencies
         run_lint
@@ -468,6 +522,7 @@ case "$command_name" in
     test)
         check_dependencies
         run_positive_tests
+        run_matvec_diagnostics
         ;;
 
     test-errors)
@@ -479,6 +534,7 @@ case "$command_name" in
         check_dependencies
         run_lint
         run_positive_tests
+        run_matvec_diagnostics
         run_expected_failure_tests
         printf '\n========================================\n'
         printf 'PASS: OpenCoreX verification completed\n'
@@ -490,7 +546,7 @@ case "$command_name" in
         ;;
 
     help|--help|-h)
-        printf 'Usage: %s {lint|test|test-errors|verify|clean}\n' "$0"
+        printf 'Usage: %s {diagnostics|cold-warm|lint|test|test-errors|verify|clean}\n' "$0"
         ;;
 
     *)

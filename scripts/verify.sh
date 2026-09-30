@@ -50,6 +50,7 @@ readonly -a POSITIVE_TESTS=(
     opencorex_pim_subsystem_tb
     opencorex_pim_matvec_tb
     opencorex_pim_offload_tb
+    opencorex_pim_cold_warm_tb
     opencorex_pim_system_regression_tb
     pim_accelerator_random_tb
 )
@@ -247,6 +248,21 @@ run_matvec_diagnostics() {
             "$executable"
         done
     done
+}
+
+run_pim_cold_warm_test() {
+    local test_name=opencorex_pim_cold_warm_tb
+    local test_build="$BUILD_ROOT/$test_name"
+    local executable="$test_build/V${test_name}"
+
+    mkdir -p "$BUILD_ROOT"
+    print_section "$test_name"
+    verilator --binary --timing -Wall \
+        --top-module "$test_name" \
+        --Mdir "$test_build" \
+        "${RTL_SOURCES[@]}" \
+        "tb/benchmarks/${test_name}.sv"
+    "$executable"
 }
 
 run_expected_failure() {
@@ -494,6 +510,10 @@ case "$command_name" in
         check_dependencies
         run_matvec_diagnostics
         ;;
+    cold-warm)
+        check_dependencies
+        run_pim_cold_warm_test
+        ;;
     lint)
         check_dependencies
         run_lint
@@ -526,7 +546,7 @@ case "$command_name" in
         ;;
 
     help|--help|-h)
-        printf 'Usage: %s {diagnostics|lint|test|test-errors|verify|clean}\n' "$0"
+        printf 'Usage: %s {diagnostics|cold-warm|lint|test|test-errors|verify|clean}\n' "$0"
         ;;
 
     *)

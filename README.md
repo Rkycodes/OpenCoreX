@@ -12,7 +12,7 @@ The PIM accelerator uses an MMIO page at `0x4000_0000` for descriptors, command,
 
 The deterministic matrix-vector benchmark checks all 32 outputs against an independent software reference and checks preservation of the inputs. The CPU-only program completes in **23,685 active cycles**. The CPU-driven PIM offload program completes in **4,272 total CPU-program cycles**, including **4,141 cycles from accepted `START` to the final output write**. Cold PIM traffic is 16 vector reads, 512 matrix reads, and 32 output writes. These are simulation cycle and transaction counts for this specific 32-bit functional prototype, not energy, area, technology, or packed 8-bit D8 results.
 
-See the [looped CPU benchmark](programs/matvec_1x16_16x32.md), [16×32 CPU diagnostics](programs/matvec_1x16_16x32_cpu_diagnostics.md), [PIM offload program](programs/pim_offload_1x16_16x32.md), [evaluation methodology](docs/evaluation/evaluation-methodology.md), and [system regression record](docs/verification/pim-system-regression.md) for measurement boundaries and coverage.
+See the [looped CPU benchmark](programs/matvec_1x16_16x32.md), [16×32 CPU diagnostics](programs/matvec_1x16_16x32_cpu_diagnostics.md), [PIM offload program](programs/pim_offload_1x16_16x32.md), [cold/warm timing results](programs/pim_cold_warm_1x16_16x32.md), [evaluation methodology](docs/evaluation/evaluation-methodology.md), and [system regression record](docs/verification/pim-system-regression.md) for measurement boundaries and coverage.
 
 ## Run verification
 
@@ -22,7 +22,7 @@ Use Linux or WSL with Verilator 5.x, GNU Make, Bash, and a C++ compiler. From th
 make verify
 ```
 
-The full target runs RTL lint, positive self-checking testbenches, and expected-failure memory tests. Individual targets are `make diagnostics`, `make lint`, `make test`, and `make test-errors`. Tests cover CPU execution and reset, memory protocol and faults, PIM modules and variable-latency request behavior, shared-memory integration, CPU-driven system regression, and the benchmark programs. Program images are generated under `programs/hex/` by the generators in `scripts/`.
+The full target runs RTL lint, positive self-checking testbenches, and expected-failure memory tests. Individual targets are `make diagnostics`, `make cold-warm`, `make lint`, `make test`, and `make test-errors`. Tests cover CPU execution and reset, memory protocol and faults, PIM modules and variable-latency request behavior, shared-memory integration, CPU-driven system regression, and the benchmark programs. Program images are generated under `programs/hex/` by the generators in `scripts/`.
 
 ## Repository layout
 

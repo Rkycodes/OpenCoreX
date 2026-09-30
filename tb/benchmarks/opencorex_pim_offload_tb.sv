@@ -53,7 +53,7 @@ module opencorex_pim_offload_tb;
         int mmio_writes, mmio_reads;
         int vector_reads, matrix_reads, output_writes, pim_responses;
         int blocked_cycles, start_cycle, final_cycle, total_cycles;
-        int success_loop_fetches, literal_reads;
+        int success_loop_fetches, literal_reads, cpu_instruction_fetches;
         bit start_seen, final_seen, status_seen, status_request_seen, signature_seen;
         logic [31:0] pc_during_busy;
         bit pc_snapshot_valid;
@@ -72,6 +72,7 @@ module opencorex_pim_offload_tb;
         total_cycles = 0;
         success_loop_fetches = 0;
         literal_reads = 0;
+        cpu_instruction_fetches = 0;
         start_seen = 0;
         final_seen = 0;
         status_seen = 0;
@@ -100,6 +101,8 @@ module opencorex_pim_offload_tb;
                 if (literal_reads != 1 || start_seen)
                     $fatal(1, "CPU fetched or reread MMIO base literal");
             end
+            if (memory_read_enable && memory_address <= 32'h6b)
+                cpu_instruction_fetches++;
 
             if (dut.mmio_req_valid && dut.mmio_req_ready) begin
                 if (memory_read_enable || memory_write_enable)
@@ -201,7 +204,8 @@ module opencorex_pim_offload_tb;
         if (mmio_writes != 7 || mmio_reads != 1 || !status_seen
             || vector_reads != 16 || matrix_reads != 512
             || output_writes != 32 || pim_responses != 528
-            || blocked_cycles == 0 || literal_reads != 1)
+            || blocked_cycles == 0 || literal_reads != 1
+            || cpu_instruction_fetches != 25)
             $fatal(1, "offload counts: mmio_w=%0d mmio_r=%0d vec=%0d matrix=%0d out=%0d responses=%0d blocked=%0d",
                    mmio_writes, mmio_reads, vector_reads, matrix_reads,
                    output_writes, pim_responses, blocked_cycles);
@@ -238,6 +242,8 @@ module opencorex_pim_offload_tb;
                  total_cycles, final_cycle - start_cycle, blocked_cycles);
         $display("PIM traffic: vector reads=%0d, matrix reads=%0d, output writes=%0d",
                  vector_reads, matrix_reads, output_writes);
+        $display("PIM CPU instruction fetches through completion=%0d",
+                 cpu_instruction_fetches);
         $display("PASS: opencorex_pim_offload_tb");
         $finish;
     end

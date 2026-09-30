@@ -19,6 +19,6 @@ The v0.1 architecture and PIM interface documents retain their dated design deci
 
 ## Programs and executable evidence
 
-- [Matrix-vector benchmark](../programs/matvec_1x16_16x32.md) and [CPU-driven PIM offload benchmark](../programs/pim_offload_1x16_16x32.md)
+- [Looped CPU matrix-vector benchmark](../programs/matvec_1x16_16x32.md), [16×32 CPU diagnostics](../programs/matvec_1x16_16x32_cpu_diagnostics.md), and [CPU-driven PIM offload benchmark](../programs/pim_offload_1x16_16x32.md)
 - [Integration smoke](../programs/integration_smoke.md), [corner cases](../programs/integration_corner_cases.md), [scalar MUL](../programs/scalar_mul.md), and [dot product](../programs/dot_product_16.md)
 - [Testbenches](../tb/) and [verification script](../scripts/verify.sh)

@@ -41,6 +41,10 @@ The full target runs RTL lint, positive self-checking testbenches, and expected-
 
 Start with the [documentation index](docs/README.md) or the [roadmap](docs/roadmap.md). Some architecture documents are dated design records; their status notes distinguish the original proposal from the implemented RTL. Benchmark tests are grouped under `tb/benchmarks/` because they exercise complete programs and multiple hardware layers.
 
+## Matched memory-response sensitivity
+
+Run `make latency-sweep` for uniform unified-memory and separately labeled fixed-fetch policies at 1, 2, 5, 10, and 20 response cycles. See the [meeting results and plots](docs/evaluation/latency-results/README.md) and [next architecture memo](docs/evaluation/d8-sram-cim-design-memo.md). `make test` and `make verify` check the tracked sweep counters. The experiment changes only the test memory responder.
+
 ## Research boundary
 
 The present PIM design is a blocking, single-lane, 32-bit functional model with one outstanding PIM read. The integrated RAM adapter returns reads after a fixed cycle; a separate accelerator test covers ordered variable-latency responses. Packed 8-bit D8, SRAM/RRAM CIM variants, physical area and energy modeling, caches, nonblocking CPU/PIM execution, and full ISA compliance remain future work. See the [roadmap](docs/roadmap.md) for planned studies.

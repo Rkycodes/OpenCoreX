@@ -17,6 +17,7 @@ The v0.1 architecture and PIM interface documents retain their dated design deci
 - [Evaluation methodology](evaluation/evaluation-methodology.md) and [PIM event accounting](evaluation/pim-event-accounting.md)
 - [NeuroSim/PiMulator scope record](evaluation/neurosim-pimulator-scope-2026-09-24.md)
 
+- [Matched memory latency meeting results](evaluation/latency-results/README.md), [timing policy](evaluation/memory-response-policy.md), and [D8 → SRAM CIM → RRAM memo](evaluation/d8-sram-cim-design-memo.md)
 - [Executable 16×32 comparison contract](evaluation/comparison-contract.md)
 
 ## Programs and executable evidence

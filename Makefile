@@ -2,10 +2,11 @@
 
 VERIFY_SCRIPT := ./scripts/verify.sh
 
-.PHONY: help diagnostics cold-warm lint test test-errors verify clean
+.PHONY: help latency-sweep diagnostics cold-warm lint test test-errors verify clean
 
 help:
 	@echo "OpenCoreX verification targets:"
+	@echo "  make latency-sweep Run both matched memory latency policies"
 	@echo "  make lint         Run RTL lint"
 	@echo "  make diagnostics  Run the four CPU diagnostic benchmarks"
 	@echo "  make cold-warm    Run the focused PIM cold/warm benchmark"
@@ -19,6 +20,9 @@ cold-warm:
 
 lint:
 	@$(VERIFY_SCRIPT) lint
+
+latency-sweep:
+	@python3 scripts/run_memory_latency_sweep.py
 
 diagnostics:
 	@$(VERIFY_SCRIPT) diagnostics

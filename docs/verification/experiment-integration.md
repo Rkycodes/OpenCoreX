@@ -5,12 +5,12 @@ artifacts were preserved. Origin: `https://github.com/Rkycodes/OpenCoreX.git`.
 After fetching, main remained `93c2581`, CPU diagnostics `8cdef7a`,
 cold/warm `ab55d93`. No worktree was needed.
 
-Integration branch: `codex/integrate-matvec-experiments`. Both fetched
+Integration branch: `integration/matvec-experiments`. Both fetched
 experiments were merged. The four shared files retain both targets,
 documentation entries, and both focused tests under test/verify.
 Production RTL and measured assertions were unchanged.
 
-Commands in Ubuntu WSL at `/home/robel/OpenCoreX`:
+Verification commands in Ubuntu WSL (integration replay uses the current renamed branch) at `/home/robel/OpenCoreX`:
 
 ```bash
 git status --short
@@ -20,7 +20,7 @@ git fetch --all --prune
 git branch -avv
 git diff origin/main...origin/feat/cpu-matvec-diagnostics --stat
 git diff origin/main...origin/feat/pim-cold-warm-timing --stat
-git switch -c codex/integrate-matvec-experiments origin/main
+git switch -c integration/matvec-experiments origin/main
 git merge --no-ff origin/feat/cpu-matvec-diagnostics -m "Merge CPU matvec diagnostics"
 git merge --no-ff origin/feat/pim-cold-warm-timing -m "Merge PIM cold/warm diagnostics"
 # Resolve four shared files retaining both experiments.

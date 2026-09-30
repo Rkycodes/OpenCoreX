@@ -72,7 +72,7 @@ fail() {
 check_dependencies() {
     local tool
 
-    for tool in verilator make c++; do
+    for tool in verilator make c++ python3; do
         if ! command -v "$tool" >/dev/null 2>&1; then
             fail "required tool '$tool' was not found"
         fi
@@ -523,6 +523,7 @@ case "$command_name" in
         check_dependencies
         run_positive_tests
         run_matvec_diagnostics
+        python3 scripts/run_memory_latency_sweep.py --check
         ;;
 
     test-errors)
@@ -535,6 +536,7 @@ case "$command_name" in
         run_lint
         run_positive_tests
         run_matvec_diagnostics
+        python3 scripts/run_memory_latency_sweep.py --check
         run_expected_failure_tests
         printf '\n========================================\n'
         printf 'PASS: OpenCoreX verification completed\n'

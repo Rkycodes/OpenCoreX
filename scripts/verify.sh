@@ -50,6 +50,7 @@ readonly -a POSITIVE_TESTS=(
     opencorex_pim_subsystem_tb
     opencorex_pim_matvec_tb
     opencorex_pim_offload_tb
+    opencorex_pim_cold_warm_tb
     opencorex_pim_system_regression_tb
     pim_accelerator_random_tb
 )
@@ -217,6 +218,21 @@ run_positive_tests() {
 
     printf '\nPASS: all %d positive testbenches completed\n' \
         "${#POSITIVE_TESTS[@]}"
+}
+
+run_pim_cold_warm_test() {
+    local test_name=opencorex_pim_cold_warm_tb
+    local test_build="$BUILD_ROOT/$test_name"
+    local executable="$test_build/V${test_name}"
+
+    mkdir -p "$BUILD_ROOT"
+    print_section "$test_name"
+    verilator --binary --timing -Wall \
+        --top-module "$test_name" \
+        --Mdir "$test_build" \
+        "${RTL_SOURCES[@]}" \
+        "tb/benchmarks/${test_name}.sv"
+    "$executable"
 }
 
 run_expected_failure() {
@@ -460,6 +476,10 @@ clean_builds() {
 command_name="${1:-verify}"
 
 case "$command_name" in
+    cold-warm)
+        check_dependencies
+        run_pim_cold_warm_test
+        ;;
     lint)
         check_dependencies
         run_lint
@@ -490,7 +510,7 @@ case "$command_name" in
         ;;
 
     help|--help|-h)
-        printf 'Usage: %s {lint|test|test-errors|verify|clean}\n' "$0"
+        printf 'Usage: %s {cold-warm|lint|test|test-errors|verify|clean}\n' "$0"
         ;;
 
     *)

@@ -2,15 +2,19 @@
 
 VERIFY_SCRIPT := ./scripts/verify.sh
 
-.PHONY: help lint test test-errors verify clean
+.PHONY: help cold-warm lint test test-errors verify clean
 
 help:
 	@echo "OpenCoreX verification targets:"
 	@echo "  make lint         Run RTL lint"
+	@echo "  make cold-warm    Run the focused PIM cold/warm benchmark"
 	@echo "  make test         Run positive testbenches"
 	@echo "  make test-errors  Run expected-failure memory tests"
 	@echo "  make verify       Run the complete verification suite"
 	@echo "  make clean        Remove automated verification builds"
+
+cold-warm:
+	@$(VERIFY_SCRIPT) cold-warm
 
 lint:
 	@$(VERIFY_SCRIPT) lint

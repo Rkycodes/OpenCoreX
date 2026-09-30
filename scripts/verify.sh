@@ -219,6 +219,36 @@ run_positive_tests() {
         "${#POSITIVE_TESTS[@]}"
 }
 
+run_matvec_diagnostics() {
+    local streaming
+    local subsystem
+    local mode
+    local path
+    local test_build
+    local executable
+
+    mkdir -p "$BUILD_ROOT"
+
+    for streaming in 0 1; do
+        for subsystem in 0 1; do
+            mode=resident
+            path=direct
+            if [[ "$streaming" -eq 1 ]]; then mode=streaming; fi
+            if [[ "$subsystem" -eq 1 ]]; then path=subsystem; fi
+            test_build="$BUILD_ROOT/matvec_${mode}_${path}"
+            executable="$test_build/Vopencorex_matvec_diagnostic_tb"
+            print_section "matvec_${mode}_${path}"
+            verilator --binary --timing -Wall \
+                --top-module opencorex_matvec_diagnostic_tb \
+                -GSTREAMING="$streaming" -GSUBSYSTEM="$subsystem" \
+                --Mdir "$test_build" \
+                "${RTL_SOURCES[@]}" \
+                tb/benchmarks/opencorex_matvec_diagnostic_tb.sv
+            "$executable"
+        done
+    done
+}
+
 run_expected_failure() {
     local executable="$1"
     local test_number="$2"
@@ -460,6 +490,10 @@ clean_builds() {
 command_name="${1:-verify}"
 
 case "$command_name" in
+    diagnostics)
+        check_dependencies
+        run_matvec_diagnostics
+        ;;
     lint)
         check_dependencies
         run_lint
@@ -468,6 +502,7 @@ case "$command_name" in
     test)
         check_dependencies
         run_positive_tests
+        run_matvec_diagnostics
         ;;
 
     test-errors)
@@ -479,6 +514,7 @@ case "$command_name" in
         check_dependencies
         run_lint
         run_positive_tests
+        run_matvec_diagnostics
         run_expected_failure_tests
         printf '\n========================================\n'
         printf 'PASS: OpenCoreX verification completed\n'
@@ -490,7 +526,7 @@ case "$command_name" in
         ;;
 
     help|--help|-h)
-        printf 'Usage: %s {lint|test|test-errors|verify|clean}\n' "$0"
+        printf 'Usage: %s {diagnostics|lint|test|test-errors|verify|clean}\n' "$0"
         ;;
 
     *)

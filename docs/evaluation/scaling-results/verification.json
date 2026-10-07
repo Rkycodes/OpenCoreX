@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-07",
+  "base_commit": "7fb74d05590936d15dd8e1cc55dc638dd2b27929",
+  "measured_source_manifest": "provenance.json",
+  "source_manifest_sha256": "a371e45c72f98277395c570c1331c9487f233e8e105408eb5d1e4f3f4f140dcc",
+  "historical_source_hashes_unchanged": true,
+  "checks": [
+    {
+      "command": "make verify",
+      "result": "passed",
+      "log": "obj_dir/verification/output_scaling/opencorex-scaling-verify.log",
+      "log_sha256": "06591cd8a5f04dcbef041f12dfa8101ec057561b7cea87e74602be7d7fd3500b"
+    },
+    {
+      "command": "make scaling-study",
+      "result": "passed",
+      "log": "obj_dir/verification/output_scaling/opencorex-scaling-study.log",
+      "log_sha256": "7839ccb46b4253bcc1522112209d810bf8e6c37e93906f29be6e9c6ac5df2352"
+    },
+    {
+      "command": "make scaling-check",
+      "result": "passed",
+      "log": "obj_dir/verification/output_scaling/opencorex-scaling-check.log",
+      "log_sha256": "7839ccb46b4253bcc1522112209d810bf8e6c37e93906f29be6e9c6ac5df2352"
+    }
+  ],
+  "positive_testbenches": 35,
+  "cpu_diagnostic_configurations": 4,
+  "historical_latency_configurations": 50,
+  "historical_cache_configurations": 20,
+  "scaling_configurations": 60,
+  "capacity_compatibility_configurations": 20,
+  "limit_cases": [
+    0,
+    129,
+    128
+  ],
+  "code_write_rejection_paths": [
+    "CPU",
+    "offload"
+  ],
+  "whitespace_check": "git diff --check and git diff --cached --check"
+}

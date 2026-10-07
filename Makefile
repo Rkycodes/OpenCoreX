@@ -6,6 +6,8 @@ VERIFY_SCRIPT := ./scripts/verify.sh
 
 help:
 	@echo "OpenCoreX verification targets:"
+	@echo "  make scaling-study Run the 60-case output-count comparison"
+	@echo "  make scaling-check Check recorded output-count evidence"
 	@echo "  make cache-study  Run the 20-case instruction-cache comparison"
 	@echo "  make latency-sweep Run both matched memory latency policies"
 	@echo "  make lint         Run RTL lint"
@@ -43,3 +45,10 @@ clean:
 .PHONY: cache-study
 cache-study:
 	@python3 scripts/run_cache_study.py
+
+.PHONY: scaling-study scaling-check
+scaling-study:
+	@python3 scripts/run_scaling_study.py
+
+scaling-check:
+	@python3 scripts/run_scaling_study.py --check

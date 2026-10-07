@@ -29,7 +29,7 @@ for n in NS:
 plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 11,
                      "axes.spines.top": False, "axes.spines.right": False,
                      "axes.titleweight": "bold", "svg.fonttype": "none",
-                     "pdf.fonttype": 42, "savefig.facecolor": "white"})
+                     "savefig.facecolor": "white"})
 OUT.mkdir(parents=True, exist_ok=True)
 def grid(ax):
     ax.grid(axis="y", alpha=.2)
@@ -39,7 +39,7 @@ def latency_axis(ax):
     ax.set_xlabel("Backing-read latency L (cycles)")
     grid(ax)
 def save(fig, name):
-    for ext in ("png", "svg", "pdf"):
+    for ext in ("png", "svg"):
         fig.savefig(OUT / f"{name}.{ext}", dpi=200, bbox_inches="tight")
         if ext == "svg":
             path = OUT / f"{name}.{ext}"
@@ -107,4 +107,4 @@ axes[0].legend(frameon=False)
 fig.suptitle("At L=20: fixed costs amortize while the absolute gap grows", fontsize=15)
 fig.supxlabel("Cache enabled; vector length 16, one MAC lane, fixed 1 MiB RAM", fontsize=10)
 save(fig, "output-scaling")
-print(f"Created four figures in PNG, SVG and PDF: {OUT}")
+print(f"Created four figures in PNG and SVG: {OUT}")

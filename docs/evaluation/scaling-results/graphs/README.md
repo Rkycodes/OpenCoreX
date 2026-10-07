@@ -11,7 +11,7 @@ these are deterministic cycle simulations.
 - [Whole-program cycles](whole-program-cycles.png): all 60 configurations on a common absolute cycle scale.
 - [Output scaling](output-scaling.png): total cycles and cycles per output at L=20 with caching.
 
-Each figure also has matching SVG (editable vector) and PDF exports.
+Each figure also has a matching SVG (editable vector) export.
 Regenerate from the repository root with:
 
 ```sh

@@ -24,7 +24,9 @@ module opencorex_core_tb;
 
     // Keep the core named dut so the architectural register checks retain
     // their existing hierarchy and continue to test the CPU directly.
+    logic unused_mem_req_is_fetch;
     opencorex_core dut (
+        .mem_req_is_fetch(unused_mem_req_is_fetch),
         .clk           (clk),
         .reset         (reset),
 

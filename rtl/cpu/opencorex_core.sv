@@ -6,6 +6,7 @@ module opencorex_core (
     output logic        mem_req_valid,
     input  logic        mem_req_ready,
     output logic        mem_req_write,
+    output logic        mem_req_is_fetch,
     output logic [31:0] mem_req_addr,
     output logic [31:0] mem_req_wdata,
 
@@ -50,6 +51,7 @@ module opencorex_core (
     // internal controls form one unified request channel at the core boundary.
     assign mem_req_valid = !reset && (MemRead || MemWrite);
     assign mem_req_write = MemWrite;
+    assign mem_req_is_fetch = mem_req_valid && MemRead && !MemAddrSource;
 
     controller controller_inst (
         .clk             (clk),

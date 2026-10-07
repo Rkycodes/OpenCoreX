@@ -6,6 +6,7 @@ VERIFY_SCRIPT := ./scripts/verify.sh
 
 help:
 	@echo "OpenCoreX verification targets:"
+	@echo "  make cache-study  Run the 20-case instruction-cache comparison"
 	@echo "  make latency-sweep Run both matched memory latency policies"
 	@echo "  make lint         Run RTL lint"
 	@echo "  make diagnostics  Run the four CPU diagnostic benchmarks"
@@ -38,3 +39,7 @@ verify:
 
 clean:
 	@$(VERIFY_SCRIPT) clean
+
+.PHONY: cache-study
+cache-study:
+	@python3 scripts/run_cache_study.py

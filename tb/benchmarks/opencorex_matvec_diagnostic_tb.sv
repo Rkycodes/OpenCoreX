@@ -66,7 +66,9 @@ module opencorex_matvec_diagnostic_tb #(
     end else begin : direct
         logic mem_req_valid, mem_req_ready, mem_req_write, mem_rsp_valid;
         logic [31:0] mem_req_addr, mem_req_wdata, mem_rsp_rdata;
+        logic unused_mem_req_is_fetch;
         opencorex_core dut (
+        .mem_req_is_fetch(unused_mem_req_is_fetch),
             .clk(clk), .reset(reset),
             .mem_req_valid(mem_req_valid), .mem_req_ready(mem_req_ready),
             .mem_req_write(mem_req_write), .mem_req_addr(mem_req_addr),

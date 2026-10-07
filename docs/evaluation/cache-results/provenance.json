@@ -1,0 +1,236 @@
+{
+  "parent_head": "da1831bcb385e5e3023720c6314ddd6a6c9f2324",
+  "verilator": "Verilator 5.032 2025-01-01 rev (Debian 5.032-1)",
+  "commands": [
+    [
+      "verilator",
+      "--binary",
+      "--timing",
+      "-Wall",
+      "-j",
+      "4",
+      "--top-module",
+      "opencorex_cache_study_tb",
+      "-GCACHE_ENABLE=1'b0",
+      "--Mdir",
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/0",
+      "/home/robel/OpenCoreX/rtl/pim/pim_pkg.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/alu.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/alu_decoder.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/controller.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/datapath.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/immediate_generator.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/opencorex_core.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/register_file.sv",
+      "/home/robel/OpenCoreX/rtl/memory/instruction_cache.sv",
+      "/home/robel/OpenCoreX/rtl/memory/memory.sv",
+      "/home/robel/OpenCoreX/rtl/memory/memory_interconnect.sv",
+      "/home/robel/OpenCoreX/rtl/memory/synchronous_memory_adapter.sv",
+      "/home/robel/OpenCoreX/rtl/pim/pim_accelerator.sv",
+      "/home/robel/OpenCoreX/rtl/pim/pim_command_validator.sv",
+      "/home/robel/OpenCoreX/rtl/pim/pim_controller.sv",
+      "/home/robel/OpenCoreX/rtl/pim/pim_mac.sv",
+      "/home/robel/OpenCoreX/rtl/pim/pim_mmio_regs.sv",
+      "/home/robel/OpenCoreX/rtl/pim/pim_vector_buffer.sv",
+      "/home/robel/OpenCoreX/rtl/system/cpu_address_router.sv",
+      "/home/robel/OpenCoreX/rtl/system/opencorex_memory_subsystem.sv",
+      "/home/robel/OpenCoreX/rtl/system/opencorex_pim_subsystem.sv",
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/cache_study_subsystem.sv",
+      "/home/robel/OpenCoreX/tb/memory/latency_memory_responder.sv",
+      "/home/robel/OpenCoreX/tb/benchmarks/opencorex_cache_study_tb.sv"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/0/Vopencorex_cache_study_tb",
+      "+MODE=2",
+      "+DELAY=5",
+      "+CODE_WRITE"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/0/Vopencorex_cache_study_tb",
+      "+MODE=2",
+      "+DELAY=1"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/0/Vopencorex_cache_study_tb",
+      "+MODE=3",
+      "+DELAY=1"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/0/Vopencorex_cache_study_tb",
+      "+MODE=2",
+      "+DELAY=2"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/0/Vopencorex_cache_study_tb",
+      "+MODE=3",
+      "+DELAY=2"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/0/Vopencorex_cache_study_tb",
+      "+MODE=2",
+      "+DELAY=5"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/0/Vopencorex_cache_study_tb",
+      "+MODE=3",
+      "+DELAY=5"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/0/Vopencorex_cache_study_tb",
+      "+MODE=2",
+      "+DELAY=10"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/0/Vopencorex_cache_study_tb",
+      "+MODE=3",
+      "+DELAY=10"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/0/Vopencorex_cache_study_tb",
+      "+MODE=2",
+      "+DELAY=20"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/0/Vopencorex_cache_study_tb",
+      "+MODE=3",
+      "+DELAY=20"
+    ],
+    [
+      "verilator",
+      "--binary",
+      "--timing",
+      "-Wall",
+      "-j",
+      "4",
+      "--top-module",
+      "opencorex_cache_study_tb",
+      "-GCACHE_ENABLE=1'b1",
+      "--Mdir",
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/1",
+      "/home/robel/OpenCoreX/rtl/pim/pim_pkg.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/alu.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/alu_decoder.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/controller.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/datapath.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/immediate_generator.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/opencorex_core.sv",
+      "/home/robel/OpenCoreX/rtl/cpu/register_file.sv",
+      "/home/robel/OpenCoreX/rtl/memory/instruction_cache.sv",
+      "/home/robel/OpenCoreX/rtl/memory/memory.sv",
+      "/home/robel/OpenCoreX/rtl/memory/memory_interconnect.sv",
+      "/home/robel/OpenCoreX/rtl/memory/synchronous_memory_adapter.sv",
+      "/home/robel/OpenCoreX/rtl/pim/pim_accelerator.sv",
+      "/home/robel/OpenCoreX/rtl/pim/pim_command_validator.sv",
+      "/home/robel/OpenCoreX/rtl/pim/pim_controller.sv",
+      "/home/robel/OpenCoreX/rtl/pim/pim_mac.sv",
+      "/home/robel/OpenCoreX/rtl/pim/pim_mmio_regs.sv",
+      "/home/robel/OpenCoreX/rtl/pim/pim_vector_buffer.sv",
+      "/home/robel/OpenCoreX/rtl/system/cpu_address_router.sv",
+      "/home/robel/OpenCoreX/rtl/system/opencorex_memory_subsystem.sv",
+      "/home/robel/OpenCoreX/rtl/system/opencorex_pim_subsystem.sv",
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/cache_study_subsystem.sv",
+      "/home/robel/OpenCoreX/tb/memory/latency_memory_responder.sv",
+      "/home/robel/OpenCoreX/tb/benchmarks/opencorex_cache_study_tb.sv"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/1/Vopencorex_cache_study_tb",
+      "+MODE=2",
+      "+DELAY=5",
+      "+CODE_WRITE"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/1/Vopencorex_cache_study_tb",
+      "+MODE=2",
+      "+DELAY=1"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/1/Vopencorex_cache_study_tb",
+      "+MODE=3",
+      "+DELAY=1"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/1/Vopencorex_cache_study_tb",
+      "+MODE=2",
+      "+DELAY=2"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/1/Vopencorex_cache_study_tb",
+      "+MODE=3",
+      "+DELAY=2"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/1/Vopencorex_cache_study_tb",
+      "+MODE=2",
+      "+DELAY=5"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/1/Vopencorex_cache_study_tb",
+      "+MODE=3",
+      "+DELAY=5"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/1/Vopencorex_cache_study_tb",
+      "+MODE=2",
+      "+DELAY=10"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/1/Vopencorex_cache_study_tb",
+      "+MODE=3",
+      "+DELAY=10"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/1/Vopencorex_cache_study_tb",
+      "+MODE=2",
+      "+DELAY=20"
+    ],
+    [
+      "/home/robel/OpenCoreX/obj_dir/verification/cache_study/1/Vopencorex_cache_study_tb",
+      "+MODE=3",
+      "+DELAY=20"
+    ]
+  ],
+  "source_sha256": {
+    "programs/hex/dot_product_16.hex": "8bba7329fbd5decc46abac36da5a878dade76adf3074aef3126dd9e50fe11807",
+    "programs/hex/illegal_instruction.hex": "11571c196e24297e7800ccf9e60182e96c09fb827c60c93014bf503e7e522b62",
+    "programs/hex/integration_corner_cases.hex": "390706f58844e8ce2d456a7a481e14b3a5ee3894d3ff5eb8d4aecc63211f17cb",
+    "programs/hex/integration_smoke.hex": "56a752bf26403c2fc349b06a2c13870173cf86d52006272eabbad6d4ca7ab0c3",
+    "programs/hex/matvec_1x16_16x32.hex": "a64bc398a1a90ddfd33df03e7c021a7f1797e70d5e11f0eb8b6b3cedf2b8eb94",
+    "programs/hex/matvec_1x16_16x32_expected.hex": "985afc4d1c51aeff791ae5be0ecaaea08bcd2e09e93e632c13575b3b76c49fc9",
+    "programs/hex/matvec_1x16_16x32_resident.hex": "185c22f1fa1fb098f0e2d19ef65f92c2662a85f419bec62ef36ffe8379b7d0fe",
+    "programs/hex/matvec_1x16_16x32_streaming.hex": "edd4c8deb6204ef78d33a3184381be66cf50639ec74ed32b202dd8d1420fd682",
+    "programs/hex/pim_cold_warm_1x16_16x32.hex": "2125df0af5313a156f138ad1c536547ab46e2e29547a256768bff115e2265878",
+    "programs/hex/pim_offload_1x16_16x32.hex": "c7218db9c05b420163177ba2faee18e15cadc35d73a71be471c1fc58e9395ec5",
+    "programs/hex/pim_system_regression.hex": "00d53432d11a9fa01dc87bcffc6bf1d22fd93a1b9c3fe14950445d18bc3a4517",
+    "programs/hex/reset_during_execution.hex": "da520e4adc29968ea7ac5f48b35ee096a1852fb422ec25c9fe801881a949e922",
+    "programs/hex/scalar_mul.hex": "ab5724fdb49f1e426031d32c09831275eac2e045c177eab41056af3ea76a6ea6",
+    "rtl/cpu/alu.sv": "f3aaec0c0b8830260a18c2db3cd190abb5dc7f93588a6c27fcdc97a434004ea3",
+    "rtl/cpu/alu_decoder.sv": "7c3864884815d9c3f8926ce8f11be7a2243100a1869d5d26cda86a0cf8b0c3d3",
+    "rtl/cpu/controller.sv": "ba00aa097a9018a71745cf4ace71f081caa1ccc994db4db274cde51975e8473b",
+    "rtl/cpu/datapath.sv": "60034eaf3a28d11bf5b29a06317e4b42027c1fb47949a44bfe30f1728fec3a7d",
+    "rtl/cpu/immediate_generator.sv": "055c8677613dd5551c59c170605a27e83bdac62b9d1674062f3ecf04617d0f42",
+    "rtl/cpu/opencorex_core.sv": "90c60d8651e4b8b8e1a723b9cc4828338d8d6cd930a695ba890ff726e00b586e",
+    "rtl/cpu/register_file.sv": "3f0c2ccf9bf47aa65bdca577149b91c4d43221e47bef900240a5a684e8c6d89d",
+    "rtl/memory/instruction_cache.sv": "e304b1108111e87e4d5b82bf6fa49d1882264ef9ed5a322420cde8e05949b3bf",
+    "rtl/memory/memory.sv": "d2cce985f1c9bdddcf4242f2c4007d6eeb7fc0aab18800d5ba6ff2ba2b9b751e",
+    "rtl/memory/memory_interconnect.sv": "09126f7e2e9ffbbece3c5e302f26efcb6631467a225a17e9e6bb2fe850614356",
+    "rtl/memory/synchronous_memory_adapter.sv": "d19c389e00e58b0a92cae748a0ad51cf4e11a28643db48e4d5ded9ccdf029ea4",
+    "rtl/pim/pim_accelerator.sv": "19d12c75826f9d04f633e41500e3a4f8ab250af947cf1624e7fa591ec13084a5",
+    "rtl/pim/pim_command_validator.sv": "3f76f22673786dad2b640a6ddcb193e5bfed847227a04ff2de45662111b4b62c",
+    "rtl/pim/pim_controller.sv": "1656d890bd3254685526f56afcc69f9cf1bb0e9655de7756645149841787a693",
+    "rtl/pim/pim_mac.sv": "006680369884514bc08b102bd42ce306652c3f1442b1c7144d71133ba7849071",
+    "rtl/pim/pim_mmio_regs.sv": "db58f7201df7dafa85739aac38cdd37029d76e933a0c4facf1004a792b44ce47",
+    "rtl/pim/pim_pkg.sv": "689225813bec8fae90b70324762c947946209a5091490495278eb2bf887bb22f",
+    "rtl/pim/pim_vector_buffer.sv": "98262ef3146468bf4251dd7f1c14426e1b89333d4d0019da211a2e8dd6d205d9",
+    "rtl/system/cpu_address_router.sv": "26ed46d37aef7eadba538073fe99825939e3c57fd51d1172222863d60bc7bcf4",
+    "rtl/system/opencorex_memory_subsystem.sv": "955eb51354c0102f1dc1cbdc6c783fa80d95b2e4c54dc580aa05e1f8fba8256f",
+    "rtl/system/opencorex_pim_subsystem.sv": "c622fa6ae21c7266b94caaad771b7a458c5c09b21a9841b4335ad4baf221ba1c",
+    "scripts/cache_trace.py": "894d7c5c2a00742b1724c4f51b119a023abd991a8d57b15a11c283d5a0500d2b",
+    "scripts/run_cache_study.py": "3913eba31d0e756d26d156f129065ac335367deda485d5d8b8b38c452f762125",
+    "scripts/run_memory_latency_sweep.py": "3d1780117175e2a2039d44c0f3b4832ed0eaf857302ba0d7dafe228163d63196",
+    "scripts/verify.sh": "43cb9ed69a2f4df273188eae5261669e16baf3c3eca35d0f48bfc5c14291cc9d",
+    "tb/benchmarks/opencorex_cache_study_tb.sv": "ad7b9b0af0612dcaeacb1d95484920a02a031cf9b49e09eb43ac09531768308a",
+    "tb/benchmarks/opencorex_cached_cpu_tb.sv": "7f3d34a0018e11e092fed8d3b070fa35d05ded405db04839a080fa4d8482a7ba",
+    "tb/memory/instruction_cache_tb.sv": "55248dbd4448ab4e73f2814064deb8b7783ad910b668381cf3a6cf369c9646eb",
+    "tb/memory/latency_memory_responder.sv": "3da29752bbc81d9e14542539af91e29af1c968f6623ce24241a546170a040ee8"
+  }
+}

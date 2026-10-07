@@ -59,7 +59,9 @@ module opencorex_matvec_tb;
 
     // Keep the core direct in this baseline test so arbitration remains
     // outside the measured CPU-plus-adapter path.
+    logic unused_mem_req_is_fetch;
     opencorex_core dut (
+        .mem_req_is_fetch(unused_mem_req_is_fetch),
         .clk           (clk),
         .reset         (reset),
 

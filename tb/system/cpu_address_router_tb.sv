@@ -37,12 +37,15 @@ module cpu_address_router_tb;
     string selected_test;
     logic  source_before_write;
 
+    logic unused_ram_req_is_fetch;
+
     cpu_address_router #(
         .RAM_BASE(RAM_BASE),
         .RAM_WORDS(RAM_WORDS),
         .PIM_MMIO_BASE(PIM_MMIO_BASE),
         .PIM_MMIO_BYTES(PIM_MMIO_BYTES)
     ) dut (
+        .cpu_req_is_fetch(1'b0), .ram_req_is_fetch(unused_ram_req_is_fetch),
         .clk(clk),
         .reset(reset),
         .cpu_req_valid(cpu_req_valid),

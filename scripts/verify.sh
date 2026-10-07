@@ -20,6 +20,8 @@ done
 readonly -a RTL_SOURCES
 
 readonly -a POSITIVE_TESTS=(
+    instruction_cache_tb
+    opencorex_cached_cpu_tb
     alu_decoder_tb
     alu_tb
     controller_tb
@@ -176,6 +178,7 @@ run_lint() {
         rtl/memory/memory_interconnect.sv \
         rtl/cpu/opencorex_core.sv \
         rtl/system/opencorex_memory_subsystem.sv \
+        rtl/memory/instruction_cache.sv \
         rtl/cpu/register_file.sv \
         rtl/memory/synchronous_memory_adapter.sv
 
@@ -207,10 +210,14 @@ run_positive_tests() {
 
         print_section "$test_name"
 
+        local extra_sources=()
+        if [[ "$test_name" == instruction_cache_tb ]]; then
+            extra_sources+=(tb/memory/latency_memory_responder.sv)
+        fi
         verilator --binary --timing -Wall \
             --top-module "$test_name" \
             --Mdir "$test_build" \
-            "${RTL_SOURCES[@]}" \
+            "${RTL_SOURCES[@]}" "${extra_sources[@]}" \
             "$testbench"
 
         "$executable"
@@ -524,6 +531,7 @@ case "$command_name" in
         run_positive_tests
         run_matvec_diagnostics
         python3 scripts/run_memory_latency_sweep.py --check
+        python3 scripts/run_cache_study.py --check
         ;;
 
     test-errors)
@@ -537,6 +545,7 @@ case "$command_name" in
         run_positive_tests
         run_matvec_diagnostics
         python3 scripts/run_memory_latency_sweep.py --check
+        python3 scripts/run_cache_study.py --check
         run_expected_failure_tests
         printf '\n========================================\n'
         printf 'PASS: OpenCoreX verification completed\n'

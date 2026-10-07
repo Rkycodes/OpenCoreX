@@ -20,7 +20,10 @@ module pim_accelerator_tb;
     logic [31:0] held_addr, held_data;
     logic held_write;
 
+    logic unused_ram_req_is_fetch;
+
     cpu_address_router #(.RAM_WORDS(128)) router (
+        .cpu_req_is_fetch(1'b0), .ram_req_is_fetch(unused_ram_req_is_fetch),
         .clk, .reset, .cpu_req_valid, .cpu_req_ready, .cpu_req_write,
         .cpu_req_addr, .cpu_req_wdata, .cpu_rsp_valid, .cpu_rsp_rdata,
         .ram_req_valid, .ram_req_ready(1'b1), .ram_req_write, .ram_req_addr,

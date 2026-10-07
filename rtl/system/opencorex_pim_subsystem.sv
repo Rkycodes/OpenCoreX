@@ -1,4 +1,5 @@
 module opencorex_pim_subsystem #(
+    parameter bit ICACHE_ENABLE = 1'b0,
     parameter int unsigned RAM_WORDS = 1024,
     parameter logic [31:0] MMIO_BASE = 32'h4000_0000,
     parameter int unsigned BUFFER_WORDS = 16,
@@ -14,6 +15,7 @@ module opencorex_pim_subsystem #(
     input logic [31:0] memory_read_data,
     output logic error
 );
+    logic cpu_req_is_fetch, ram_req_is_fetch;
     logic cpu_req_valid, cpu_req_ready, cpu_req_write;
     logic [31:0] cpu_req_addr, cpu_req_wdata;
     logic cpu_rsp_valid;
@@ -40,6 +42,7 @@ module opencorex_pim_subsystem #(
     logic [31:0] mem_rsp_rdata;
 
     opencorex_core core_inst (
+        .mem_req_is_fetch(cpu_req_is_fetch),
         .clk, .reset,
         .mem_req_valid(cpu_req_valid), .mem_req_ready(cpu_req_ready),
         .mem_req_write(cpu_req_write), .mem_req_addr(cpu_req_addr),
@@ -50,6 +53,7 @@ module opencorex_pim_subsystem #(
     cpu_address_router #(
         .RAM_WORDS(RAM_WORDS), .PIM_MMIO_BASE(MMIO_BASE)
     ) router_inst (
+        .cpu_req_is_fetch, .ram_req_is_fetch,
         .clk, .reset, .cpu_req_valid, .cpu_req_ready, .cpu_req_write,
         .cpu_req_addr, .cpu_req_wdata, .cpu_rsp_valid, .cpu_rsp_rdata,
         .ram_req_valid, .ram_req_ready, .ram_req_write, .ram_req_addr,
@@ -73,11 +77,27 @@ module opencorex_pim_subsystem #(
         .mem_rsp_rdata(pim_rsp_rdata)
     );
 
-    memory_interconnect interconnect_inst (
-        .clk, .reset, .cpu_req_valid(ram_req_valid),
-        .cpu_req_ready(ram_req_ready), .cpu_req_write(ram_req_write),
+    logic cache_req_valid, cache_req_ready, cache_req_write;
+    logic [31:0] cache_req_addr, cache_req_wdata;
+    logic cache_rsp_valid;
+    logic [31:0] cache_rsp_rdata;
+    instruction_cache #(.ENABLE(ICACHE_ENABLE)) icache_inst (
+        .clk, .reset,
+        .cpu_req_valid(ram_req_valid), .cpu_req_ready(ram_req_ready),
+        .cpu_req_write(ram_req_write), .cpu_req_is_fetch(ram_req_is_fetch),
         .cpu_req_addr(ram_req_addr), .cpu_req_wdata(ram_req_wdata),
         .cpu_rsp_valid(ram_rsp_valid), .cpu_rsp_rdata(ram_rsp_rdata),
+        .mem_req_valid(cache_req_valid), .mem_req_ready(cache_req_ready),
+        .mem_req_write(cache_req_write), .mem_req_addr(cache_req_addr),
+        .mem_req_wdata(cache_req_wdata), .mem_rsp_valid(cache_rsp_valid),
+        .mem_rsp_rdata(cache_rsp_rdata)
+    );
+
+    memory_interconnect interconnect_inst (
+        .clk, .reset, .cpu_req_valid(cache_req_valid),
+        .cpu_req_ready(cache_req_ready), .cpu_req_write(cache_req_write),
+        .cpu_req_addr(cache_req_addr), .cpu_req_wdata(cache_req_wdata),
+        .cpu_rsp_valid(cache_rsp_valid), .cpu_rsp_rdata(cache_rsp_rdata),
         .pim_req_valid, .pim_req_ready, .pim_req_write,
         .pim_req_addr, .pim_req_wdata, .pim_rsp_valid,
         .pim_rsp_rdata, .mem_req_valid, .mem_req_ready,

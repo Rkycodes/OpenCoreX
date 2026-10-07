@@ -59,7 +59,10 @@ module pim_mmio_regs_tb;
         .status_error(status_error)
     );
 
+    logic unused_ram_req_is_fetch;
+
     cpu_address_router #(.RAM_WORDS(16)) router (
+        .cpu_req_is_fetch(1'b0), .ram_req_is_fetch(unused_ram_req_is_fetch),
         .clk(clk), .reset(reset),
         .cpu_req_valid(cpu_req_valid), .cpu_req_ready(cpu_req_ready),
         .cpu_req_write(cpu_req_write), .cpu_req_addr(cpu_req_addr),

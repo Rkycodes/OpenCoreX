@@ -167,6 +167,6 @@ These remain valuable OpenCoreX directions, but they are secondary to the resear
 - [ ] Additional architectural assertions
 - [ ] FPGA implementation
 - [ ] Pipelined CPU
-- [ ] Caches
+- [x] Optional instruction cache and controlled 32-bit locality study (October 7); data caching and associativity remain future work
 - [ ] AXI4-based interconnect
 - [ ] UART and other FPGA peripherals

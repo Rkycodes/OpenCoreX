@@ -45,7 +45,16 @@ Start with the [documentation index](docs/README.md) or the [roadmap](docs/roadm
 
 Run `make latency-sweep` for uniform unified-memory and separately labeled fixed-fetch policies at 1, 2, 5, 10, and 20 response cycles. See the [meeting results and plots](docs/evaluation/latency-results/README.md) and [next architecture memo](docs/evaluation/d8-sram-cim-design-memo.md). `make test` and `make verify` check the tracked sweep counters. The experiment changes only the test memory responder.
 
+## Instruction-cache study
+
+A default-disabled 512-byte direct-mapped instruction cache uses 16-byte lines,
+registered two-cycle hits and blocking four-word refill. Data and MMIO bypass it.
+Run `make cache-study`; see [the settled contract](docs/evaluation/comparison-contract.md)
+and [20-run results](docs/evaluation/cache-results/README.md). Bypass preserves
+the historical measurements. Code is immutable between resets; stores do not
+update cached instruction words.
+
 ## Research boundary
 
-The present PIM design is a blocking, single-lane, 32-bit functional model with one outstanding PIM read. The integrated RAM adapter returns reads after a fixed cycle; a separate accelerator test covers ordered variable-latency responses. Packed 8-bit D8, SRAM/RRAM CIM variants, physical area and energy modeling, caches, nonblocking CPU/PIM execution, and full ISA compliance remain future work. See the [roadmap](docs/roadmap.md) for planned studies.
+The present PIM design is a blocking, single-lane, 32-bit functional model with one outstanding PIM read. The integrated RAM adapter returns reads after a fixed cycle; a separate accelerator test covers ordered variable-latency responses. Packed 8-bit D8, SRAM/RRAM CIM variants, physical area and energy modeling, nonblocking CPU/PIM execution, and full ISA compliance remain future work. See the [roadmap](docs/roadmap.md) for planned studies.
 

@@ -13,6 +13,8 @@ The v0.1 architecture and PIM interface documents retain their dated design deci
 
 ## Verification and evaluation
 
+- [Larger-vector tiling contract](evaluation/tiling-contract.md) and [120-case results](evaluation/tiling-results/README.md)
+
 - [Output-count scaling contract and results](evaluation/scaling-results/README.md)
 
 - [October 19 cache contract](evaluation/comparison-contract.md) and [measured cache study](evaluation/cache-results/README.md)

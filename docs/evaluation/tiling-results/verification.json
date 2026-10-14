@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-14",
+  "base_commit": "cc81ed5f43b5ee930db5735cf10aabee51c8399c",
+  "measured_source_manifest": "provenance.json",
+  "source_manifest_sha256": "c9c8cbbd22954457f7e90b559f907959e6e85901029465a02444c04417fd401d",
+  "historical_source_hashes_unchanged": true,
+  "historical_source_files_checked": 57,
+  "historical_images_and_results_unchanged": true,
+  "checks": [
+    {
+      "command": "make tiling-study",
+      "result": "passed",
+      "log": "obj_dir/tiling-study.log",
+      "log_sha256": "42e373119cfbc84c2fd20f01c1e66b6b31d392f45ee0c57966e24497ba075a97"
+    },
+    {
+      "command": "make tiling-check",
+      "result": "passed",
+      "log": "obj_dir/tiling-check.log",
+      "log_sha256": "42e373119cfbc84c2fd20f01c1e66b6b31d392f45ee0c57966e24497ba075a97"
+    },
+    {
+      "command": "make scaling-check",
+      "result": "passed",
+      "log": "obj_dir/tiling-scaling-check.log",
+      "log_sha256": "7839ccb46b4253bcc1522112209d810bf8e6c37e93906f29be6e9c6ac5df2352"
+    },
+    {
+      "command": "make verify",
+      "result": "passed",
+      "log": "obj_dir/tiling-historical-verify.log",
+      "log_sha256": "c4525b846a5fead8ba1742cc45883e75914daa4b1c8897db7aa8b213f58ab2d0"
+    }
+  ],
+  "primary_configurations": 120,
+  "buffer_compatibility_configurations": 10,
+  "vector_limit_cases": [
+    0,
+    129,
+    128
+  ],
+  "code_write_rejection_configurations": 6,
+  "positive_historical_testbenches": 35,
+  "cpu_diagnostic_configurations": 4,
+  "historical_latency_configurations": 50,
+  "historical_cache_configurations": 20,
+  "scaling_configurations": 60,
+  "scaling_capacity_compatibility_configurations": 20,
+  "plot_command": "PYTHONPATH=obj_dir/tiling-plot-packages python3 scripts/plot_tiling.py",
+  "plot_matplotlib_version": "3.11.2",
+  "plot_source_sha256": "0d2e9452880fca31930dce682c06f4326ac7ccdec812d20b1f5ad762d484a7e4",
+  "plot_sha256": {
+    "graphs/remaining-offload-advantage.png": "3b48a80b0c2f4c6d3691cfaffe65ba64e0fd43723e1487350b5345c6f89dd890",
+    "graphs/remaining-offload-advantage.svg": "8175dbad9a4038b6f3e8365bacc10ba346028cf240125f02f0935bad3520e59c",
+    "graphs/tiling-benefit.png": "f42bcea0a573d538b0ce61bcc19ad04a3d8b1d2427f236bb2c08911a5c41aa29",
+    "graphs/tiling-benefit.svg": "9111e5585d94d7c32b8f80153377d7c1e8b5cee477ba88668f5c339f520e9933",
+    "graphs/whole-program-cycles.png": "bafbeae7cae1fb542366b019e7655f0be43b8e96999f524b975c6fe5ed959b28",
+    "graphs/whole-program-cycles.svg": "aa230fdc64c53c6024d1c74a5631fcb2ef80a4c7f14a129c0a3dd7303545765c"
+  },
+  "rendered_figures_visually_inspected": true,
+  "slide_briefing": "Deferred at the user-requested stopping point; no deck authored."
+}

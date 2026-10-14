@@ -6,6 +6,8 @@ VERIFY_SCRIPT := ./scripts/verify.sh
 
 help:
 	@echo "OpenCoreX verification targets:"
+	@echo "  make tiling-study Run the 120-case larger-vector comparison"
+	@echo "  make tiling-check Check recorded larger-vector evidence"
 	@echo "  make scaling-study Run the 60-case output-count comparison"
 	@echo "  make scaling-check Check recorded output-count evidence"
 	@echo "  make cache-study  Run the 20-case instruction-cache comparison"
@@ -52,3 +54,10 @@ scaling-study:
 
 scaling-check:
 	@python3 scripts/run_scaling_study.py --check
+
+.PHONY: tiling-study tiling-check
+tiling-study:
+	@python3 scripts/run_tiling_study.py
+
+tiling-check:
+	@python3 scripts/run_tiling_study.py --check

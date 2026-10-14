@@ -184,6 +184,7 @@ The resident CPU is the strongest implemented 16×32 comparator; the looped
 CPU remains the general reference. Results do not extrapolate to larger matrices,
 packed int8, matrix residency or nonblocking execution.
 
-Next: define packed signed-int8 layout and CPU extraction, then implement the
-one-lane D8 digital comparator and its CPU reference before SRAM CIM or RRAM.
+Current next step (October 7): the 32-bit instruction-cache study takes priority;
+see [cache results](../cache-results/README.md) and the settled comparison contract.
+Packed int8 D8 remains a later, separate comparison before SRAM CIM or RRAM.
 See the [architecture memo](../d8-sram-cim-design-memo.md).

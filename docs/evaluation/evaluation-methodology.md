@@ -85,8 +85,11 @@ The current multicycle core is non-speculative and fetches one instruction for
 each dynamically executed instruction. Therefore, instruction fetch count is
 currently used as the dynamic instruction count.
 
+For the optional instruction cache, count accepted CPU-side fetch requests as
+dynamic instructions and count backing refill-word reads separately. They are
+different events: a miss fetches four words, while a hit issues no RAM read.
 This equivalence may no longer hold after adding pipelining, speculative fetch,
-prefetching, replay, or caches. A future core with those features must expose an
+prefetching or replay. A future core with those features must expose an
 instruction-retirement event so that fetched instructions and retired
 instructions can be measured separately.
 
@@ -147,3 +150,6 @@ interface is added, a transaction will count only when:
 ```systemverilog
 mem_req_valid && mem_req_ready
 ```
+The October 19 registered instruction-cache study follows the settled
+[comparison contract](comparison-contract.md); its [results](cache-results/README.md)
+separate logical fetches, full-line refill traffic and overlapping wait counters.

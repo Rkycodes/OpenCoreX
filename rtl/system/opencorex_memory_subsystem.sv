@@ -1,4 +1,4 @@
-module opencorex_memory_subsystem (
+module opencorex_memory_subsystem #(parameter bit ICACHE_ENABLE = 1'b0) (
     input  logic        clk,
     input  logic        reset,
 
@@ -26,6 +26,7 @@ module opencorex_memory_subsystem (
 
     // CPU-side request and response channels.
     logic        cpu_req_valid;
+    logic        cpu_req_is_fetch;
     logic        cpu_req_ready;
     logic        cpu_req_write;
     logic [31:0] cpu_req_addr;
@@ -43,6 +44,7 @@ module opencorex_memory_subsystem (
     logic [31:0] mem_rsp_rdata;
 
     opencorex_core core_inst (
+        .mem_req_is_fetch(cpu_req_is_fetch),
         .clk            (clk),
         .reset          (reset),
 
@@ -58,17 +60,33 @@ module opencorex_memory_subsystem (
         .error          (error)
     );
 
+    logic cache_req_valid, cache_req_ready, cache_req_write;
+    logic [31:0] cache_req_addr, cache_req_wdata;
+    logic cache_rsp_valid;
+    logic [31:0] cache_rsp_rdata;
+    instruction_cache #(.ENABLE(ICACHE_ENABLE)) icache_inst (
+        .clk, .reset,
+        .cpu_req_valid(cpu_req_valid), .cpu_req_ready(cpu_req_ready),
+        .cpu_req_write(cpu_req_write), .cpu_req_is_fetch(cpu_req_is_fetch),
+        .cpu_req_addr(cpu_req_addr), .cpu_req_wdata(cpu_req_wdata),
+        .cpu_rsp_valid(cpu_rsp_valid), .cpu_rsp_rdata(cpu_rsp_rdata),
+        .mem_req_valid(cache_req_valid), .mem_req_ready(cache_req_ready),
+        .mem_req_write(cache_req_write), .mem_req_addr(cache_req_addr),
+        .mem_req_wdata(cache_req_wdata), .mem_rsp_valid(cache_rsp_valid),
+        .mem_rsp_rdata(cache_rsp_rdata)
+    );
+
     memory_interconnect interconnect_inst (
         .clk            (clk),
         .reset          (reset),
 
-        .cpu_req_valid  (cpu_req_valid),
-        .cpu_req_ready  (cpu_req_ready),
-        .cpu_req_write  (cpu_req_write),
-        .cpu_req_addr   (cpu_req_addr),
-        .cpu_req_wdata  (cpu_req_wdata),
-        .cpu_rsp_valid  (cpu_rsp_valid),
-        .cpu_rsp_rdata  (cpu_rsp_rdata),
+        .cpu_req_valid  (cache_req_valid),
+        .cpu_req_ready  (cache_req_ready),
+        .cpu_req_write  (cache_req_write),
+        .cpu_req_addr   (cache_req_addr),
+        .cpu_req_wdata  (cache_req_wdata),
+        .cpu_rsp_valid  (cache_rsp_valid),
+        .cpu_rsp_rdata  (cache_rsp_rdata),
 
         .pim_req_valid  (pim_req_valid),
         .pim_req_ready  (pim_req_ready),

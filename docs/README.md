@@ -13,6 +13,8 @@ The v0.1 architecture and PIM interface documents retain their dated design deci
 
 ## Verification and evaluation
 
+- [October 19 cache contract](evaluation/comparison-contract.md) and [measured cache study](evaluation/cache-results/README.md)
+
 - [CPU-driven PIM system regression](verification/pim-system-regression.md)
 - [Evaluation methodology](evaluation/evaluation-methodology.md) and [PIM event accounting](evaluation/pim-event-accounting.md)
 - [NeuroSim/PiMulator scope record](evaluation/neurosim-pimulator-scope-2026-09-24.md)

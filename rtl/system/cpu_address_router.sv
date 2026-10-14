@@ -11,6 +11,7 @@ module cpu_address_router #(
     input  logic        cpu_req_valid,
     output logic        cpu_req_ready,
     input  logic        cpu_req_write,
+    input  logic        cpu_req_is_fetch,
     input  logic [31:0] cpu_req_addr,
     input  logic [31:0] cpu_req_wdata,
 
@@ -22,6 +23,7 @@ module cpu_address_router #(
     output logic        ram_req_valid,
     input  logic        ram_req_ready,
     output logic        ram_req_write,
+    output logic        ram_req_is_fetch,
     output logic [31:0] ram_req_addr,
     output logic [31:0] ram_req_wdata,
 
@@ -69,6 +71,8 @@ module cpu_address_router #(
     logic accepted_read;
     logic selected_rsp_valid;
     logic [31:0] selected_rsp_rdata;
+
+    assign ram_req_is_fetch = ram_req_valid && cpu_req_is_fetch;
 
     assign cpu_addr_ext = {32'b0, cpu_req_addr};
     assign ram_hit =
@@ -193,6 +197,7 @@ module cpu_address_router #(
     
     logic        ram_stalled;
     logic        ram_stalled_write;
+    logic        ram_stalled_fetch;
     logic [31:0] ram_stalled_addr;
     logic [31:0] ram_stalled_wdata;
     logic        mmio_stalled;
@@ -206,6 +211,7 @@ module cpu_address_router #(
         if (reset) begin
             ram_stalled        <= 1'b0;
             ram_stalled_write  <= 1'b0;
+            ram_stalled_fetch  <= 1'b0;
             ram_stalled_addr   <= 32'b0;
             ram_stalled_wdata  <= 32'b0;
             mmio_stalled       <= 1'b0;
@@ -225,6 +231,7 @@ module cpu_address_router #(
             if (ram_stalled) begin
                 assert (ram_req_valid
                         && (ram_req_write == ram_stalled_write)
+                        && (ram_req_is_fetch == ram_stalled_fetch)
                         && (ram_req_addr == ram_stalled_addr)
                         && (ram_req_wdata == ram_stalled_wdata))
                     else $fatal(1, "cpu_address_router: stalled RAM payload changed");
@@ -252,6 +259,7 @@ module cpu_address_router #(
 
             ram_stalled       <= ram_req_valid && !ram_req_ready;
             ram_stalled_write <= ram_req_write;
+            ram_stalled_fetch <= ram_req_is_fetch;
             ram_stalled_addr  <= ram_req_addr;
             ram_stalled_wdata <= ram_req_wdata;
 

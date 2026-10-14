@@ -22,7 +22,10 @@ module opencorex_corner_cases_tb;
     logic [31:0] memory_read_data;
     logic        error;
 
+    logic unused_mem_req_is_fetch;
+
     opencorex_core dut (
+        .mem_req_is_fetch(unused_mem_req_is_fetch),
         .clk           (clk),
         .reset         (reset),
 

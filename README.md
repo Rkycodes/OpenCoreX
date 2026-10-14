@@ -54,6 +54,14 @@ and [20-run results](docs/evaluation/cache-results/README.md). Bypass preserves
 the historical measurements. Code is immutable between resets; stores do not
 update cached instruction words.
 
+## Output-count scaling
+
+Run `make scaling-study` for the controlled 16×N sweep at N=32,64,128;
+`make scaling-check` verifies the recorded evidence. The
+[scaling contract and results](docs/evaluation/scaling-results/README.md) use
+fixed 1 MiB RAM and MAX_OUTPUTS=128 benchmark overrides, preserving production
+defaults and historical images.
+
 ## Research boundary
 
 The present PIM design is a blocking, single-lane, 32-bit functional model with one outstanding PIM read. The integrated RAM adapter returns reads after a fixed cycle; a separate accelerator test covers ordered variable-latency responses. Packed 8-bit D8, SRAM/RRAM CIM variants, physical area and energy modeling, nonblocking CPU/PIM execution, and full ISA compliance remain future work. See the [roadmap](docs/roadmap.md) for planned studies.

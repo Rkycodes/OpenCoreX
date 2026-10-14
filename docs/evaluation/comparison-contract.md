@@ -114,4 +114,8 @@ testbenches, four CPU diagnostics, 50 historical latency configurations,
 20 cache-study configurations and all expected-failure checks passed.
 Full local log: `obj_dir/verification/cache_study/full-verify.log`.
 The measured source identity is recorded in `cache-results/provenance.json`;
-the implementation remains uncommitted on `feature/oct19-cache-study`.
+the cache implementation was committed as `7fb74d05590936d15dd8e1cc55dc638dd2b27929`
+on `feature/oct19-cache-study`.
+
+The separate [output-count scaling study](scaling-results/README.md) preserves
+these historical results and uses its own relocated baseline and fixed configuration.

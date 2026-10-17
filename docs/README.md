@@ -13,6 +13,8 @@ The v0.1 architecture and PIM interface documents retain their dated design deci
 
 ## Verification and evaluation
 
+- [Square GEMM contract](evaluation/gemm-contract.md) and [16×16/32×32 results](evaluation/gemm-results/README.md)
+
 - [Larger-vector tiling contract](evaluation/tiling-contract.md) and [120-case results](evaluation/tiling-results/README.md)
 
 - [Output-count scaling contract and results](evaluation/scaling-results/README.md)

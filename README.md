@@ -62,6 +62,16 @@ Run `make scaling-study` for the controlled 16×N sweep at N=32,64,128;
 fixed 1 MiB RAM and MAX_OUTPUTS=128 benchmark overrides, preserving production
 defaults and historical images.
 
+## Square matrix multiplication
+
+Run `make gemm-study` for 16×16 and 32×32 C=A×B using scalar streaming,
+four-output CPU tiling and one cold digital matvec command per A row.
+`make gemm-check` checks all 60 recorded cache/latency configurations against
+independent execution/cache replay. See the [layout and timing contract](docs/evaluation/gemm-contract.md)
+and [complete-job results](docs/evaluation/gemm-results/README.md).
+Operands start in RAM with row-major A/C and column-major B; layout preparation
+is excluded consistently. Production RTL and defaults are unchanged.
+
 ## Research boundary
 
 The present PIM design is a blocking, single-lane, 32-bit functional model with one outstanding PIM read. The integrated RAM adapter returns reads after a fixed cycle; a separate accelerator test covers ordered variable-latency responses. Packed 8-bit D8, SRAM/RRAM CIM variants, physical area and energy modeling, nonblocking CPU/PIM execution, and full ISA compliance remain future work. See the [roadmap](docs/roadmap.md) for planned studies.

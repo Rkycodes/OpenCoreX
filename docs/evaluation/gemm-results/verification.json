@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-17",
+  "base_commit": "7c6f323753540135d4260d636bf8cc04adad4cc1",
+  "measured_source_manifest": "provenance.json",
+  "source_manifest_sha256": "62c03f0fceb84a9de3dc064376dd240351db3a1cc6a614a727893362197d41dc",
+  "checks": [
+    {
+      "command": "make gemm-study",
+      "result": "passed",
+      "log": "obj_dir/gemm-study.log",
+      "log_sha256": "33156f8ef59abe86c447c064b2b1c29e27020d90cd2dce4b88f69d89e009be0d"
+    },
+    {
+      "command": "make gemm-check",
+      "result": "passed",
+      "log": "obj_dir/gemm-check.log",
+      "log_sha256": "33156f8ef59abe86c447c064b2b1c29e27020d90cd2dce4b88f69d89e009be0d"
+    },
+    {
+      "command": "make verify",
+      "result": "passed",
+      "log": "obj_dir/gemm-historical-verify.log",
+      "log_sha256": "6ea1a6cde851ba78c5ea3879fb6f6fb0b12cbea6d93568439284f33a7888b16b"
+    }
+  ],
+  "square_orders": [
+    16,
+    32
+  ],
+  "primary_configurations": 60,
+  "outputs_verified_per_run": {
+    "16": 256,
+    "32": 1024
+  },
+  "output_comparisons_per_study_invocation": 38400,
+  "code_write_rejection_configurations": 6,
+  "measured_row_commands": 480,
+  "independent_execution_cache_traces": 6,
+  "disjoint_states_and_cache_equation_verified": true,
+  "production_rtl_defaults_unchanged": true,
+  "historical_images_results_unchanged": true,
+  "historical_manifest_entries_checked": 147,
+  "historical_unique_source_files_checked": 78,
+  "positive_historical_testbenches": 35,
+  "cpu_diagnostic_configurations": 4,
+  "historical_latency_configurations": 50,
+  "historical_cache_configurations": 20,
+  "layout_preparation_included": false,
+  "host_operand_placement_included": false,
+  "whole_job_boundary": "reset release through accepted completion-signature store inclusive",
+  "whitespace_check": "git diff --check and git diff --cached --check"
+}

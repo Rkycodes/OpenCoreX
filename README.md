@@ -1,78 +1,42 @@
 # OpenCoreX
 
-OpenCoreX is a simulation-focused SystemVerilog project with a multicycle RISC-V CPU, a 32-bit MMIO-controlled processing-in-memory (PIM) accelerator, and a verified shared-memory subsystem. The current matrix-vector workload is a `1 x 16` vector multiplied by a `16 x 32` matrix, producing 32 checked output words.
+Simulation-focused multicycle RV32 subset CPU with scalar MUL and a blocking,
+single-lane digital matvec accelerator. Arithmetic is signed 32-bit with
+wraparound. One shared RAM port, one outstanding read, no CPU data cache.
+The accelerator's private vector buffer defaults to 16 words; benchmark
+configurations provision 128. This is a functional digital model, without
+physical energy/area characterization.
 
-## Implemented hardware
+## Run
 
-The non-pipelined CPU executes `ADD`, `SUB`, `AND`, `OR`, `XOR`, `ADDI`, `LW`, `SW`, `BEQ`, `BNE`, `JAL`, and scalar `MUL`. It uses a multicycle controller, register file, and a synchronous unified memory interface. Illegal instructions enter a sticky error state that reset clears. This is a defined subset, not a complete RV32I or RV32IM implementation.
-
-The PIM accelerator uses an MMIO page at `0x4000_0000` for descriptors, command, status, and vector-buffer control. Its validator rejects invalid descriptors before memory traffic. A single MAC lane computes 32-bit wraparound results, and a 16-word private vector buffer supports cold fill and warm reuse. The CPU's accepted `START` store completes before later CPU requests stall; the CPU resumes after PIM completion or rejection. The [integrated subsystem](rtl/system/opencorex_pim_subsystem.sv) routes CPU MMIO separately from RAM and connects the CPU and PIM requesters through the existing memory interconnect and synchronous adapter. The [CPU-only subsystem](rtl/system/opencorex_memory_subsystem.sv) remains available as the Phase 1 baseline.
-
-## Verified benchmarks
-
-The deterministic matrix-vector benchmark checks all 32 outputs against an independent software reference and checks preservation of the inputs. The CPU-only program completes in **23,685 active cycles**. The CPU-driven PIM offload program completes in **4,272 total CPU-program cycles**, including **4,141 cycles from accepted `START` to the final output write**. Cold PIM traffic is 16 vector reads, 512 matrix reads, and 32 output writes. These are simulation cycle and transaction counts for this specific 32-bit functional prototype, not energy, area, technology, or packed 8-bit D8 results.
-
-See the [looped CPU benchmark](programs/matvec_1x16_16x32.md), [16×32 CPU diagnostics](programs/matvec_1x16_16x32_cpu_diagnostics.md), [PIM offload program](programs/pim_offload_1x16_16x32.md), [cold/warm timing results](programs/pim_cold_warm_1x16_16x32.md), [evaluation methodology](docs/evaluation/evaluation-methodology.md), and [system regression record](docs/verification/pim-system-regression.md) for measurement boundaries and coverage.
-
-## Run verification
-
-Use Linux or WSL with Verilator 5.x, GNU Make, Bash, and a C++ compiler. From the repository root:
+Linux/WSL requires Verilator 5.x, GNU Make, Bash, Python 3 and a C++ compiler.
 
 ```bash
-make verify
+make verify            # Historical RTL, protocol, reset and benchmark regression
+make gemm-study        # Square matrix multiplication: 16 and 32
+make gemm-large-study  # Square matrix multiplication: 64 and 128
 ```
 
-The full target runs RTL lint, positive self-checking testbenches, and expected-failure memory tests. Individual targets are `make diagnostics`, `make cold-warm`, `make lint`, `make test`, and `make test-errors`. Tests cover CPU execution and reset, memory protocol and faults, PIM modules and variable-latency request behavior, shared-memory integration, CPU-driven system regression, and the benchmark programs. Program images are generated under `programs/hex/` by the generators in `scripts/`.
+Both GEMM studies have a matching `-check` target to replay recorded evidence.
+GEMM uses streaming CPU, four-output CPU tiling and one cold offload per A row.
+Complete-job timing includes setup, launches, waits, status and completion.
+Operands start in RAM: A/C row-major, B column-major. Host placement and
+layout conversion are excluded consistently.
 
-## Repository layout
+## Results
 
-| Path | Contents |
-|---|---|
-| `rtl/cpu/` | CPU datapath, control, ALU, and register file |
-| `rtl/memory/` | RAM, memory interconnect, and synchronous adapter |
-| `rtl/pim/` | PIM package, MMIO, validation, buffer, MAC, controller, and wrapper |
-| `rtl/system/` | CPU address router and CPU-only/PIM subsystem tops |
-| `tb/cpu/`, `tb/memory/`, `tb/pim/`, `tb/system/` | Unit and subsystem testbenches |
-| `tb/benchmarks/` | CPU and PIM workload testbenches |
-| `programs/` | Program generators, workload notes, and generated images in `programs/hex/` |
-| `docs/architecture/` | Architecture and historical interface decisions; diagrams in `diagrams/` |
-| `docs/verification/`, `docs/evaluation/` | Coverage records and measurement methodology |
-| `docs/roadmap.md`, `docs/devlog.md` | Current plan and chronological development record |
+- [16×16 / 32×32 GEMM](docs/evaluation/gemm-results/README.md)
+- [64×64 / 128×128 GEMM](docs/evaluation/gemm-large-results/README.md)
+- [Larger-vector tiling](docs/evaluation/tiling-results/README.md)
+- [Output-count scaling](docs/evaluation/scaling-results/README.md)
+- [Instruction-cache study](docs/evaluation/cache-results/README.md)
 
-Start with the [documentation index](docs/README.md) or the [roadmap](docs/roadmap.md). Some architecture documents are dated design records; their status notes distinguish the original proposal from the implemented RTL. Benchmark tests are grouped under `tb/benchmarks/` because they exercise complete programs and multiple hardware layers.
+## Code and documentation
 
-## Matched memory-response sensitivity
+`rtl/` contains CPU, memory, accelerator and system modules. `tb/` contains
+self-checking tests. `programs/` stores generated images; `scripts/` generates,
+runs and checks them. Production defaults and historical images remain separate
+from benchmark overrides.
 
-Run `make latency-sweep` for uniform unified-memory and separately labeled fixed-fetch policies at 1, 2, 5, 10, and 20 response cycles. See the [meeting results and plots](docs/evaluation/latency-results/README.md) and [next architecture memo](docs/evaluation/d8-sram-cim-design-memo.md). `make test` and `make verify` check the tracked sweep counters. The experiment changes only the test memory responder.
-
-## Instruction-cache study
-
-A default-disabled 512-byte direct-mapped instruction cache uses 16-byte lines,
-registered two-cycle hits and blocking four-word refill. Data and MMIO bypass it.
-Run `make cache-study`; see [the settled contract](docs/evaluation/comparison-contract.md)
-and [20-run results](docs/evaluation/cache-results/README.md). Bypass preserves
-the historical measurements. Code is immutable between resets; stores do not
-update cached instruction words.
-
-## Output-count scaling
-
-Run `make scaling-study` for the controlled 16×N sweep at N=32,64,128;
-`make scaling-check` verifies the recorded evidence. The
-[scaling contract and results](docs/evaluation/scaling-results/README.md) use
-fixed 1 MiB RAM and MAX_OUTPUTS=128 benchmark overrides, preserving production
-defaults and historical images.
-
-## Square matrix multiplication
-
-Run `make gemm-study` for 16×16 and 32×32 C=A×B using scalar streaming,
-four-output CPU tiling and one cold digital matvec command per A row.
-`make gemm-check` checks all 60 recorded cache/latency configurations against
-independent execution/cache replay. See the [layout and timing contract](docs/evaluation/gemm-contract.md)
-and [complete-job results](docs/evaluation/gemm-results/README.md).
-Operands start in RAM with row-major A/C and column-major B; layout preparation
-is excluded consistently. Production RTL and defaults are unchanged.
-
-## Research boundary
-
-The present PIM design is a blocking, single-lane, 32-bit functional model with one outstanding PIM read. The integrated RAM adapter returns reads after a fixed cycle; a separate accelerator test covers ordered variable-latency responses. Packed 8-bit D8, SRAM/RRAM CIM variants, physical area and energy modeling, nonblocking CPU/PIM execution, and full ISA compliance remain future work. See the [roadmap](docs/roadmap.md) for planned studies.
-
+See the [documentation index](docs/README.md), [architecture](docs/architecture/architecture-v0.1.md),
+[accelerator contract](docs/architecture/pim-architecture-v0.1.md) and [roadmap](docs/roadmap.md).

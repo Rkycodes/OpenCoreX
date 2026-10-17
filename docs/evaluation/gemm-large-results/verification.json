@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-17",
+  "base_commit": "6b2141e55c3d18d44f7b425876b711296b32a860",
+  "measured_source_manifest": "provenance.json",
+  "source_manifest_sha256": "545ffb748e70f75d802d0ca26609f21e85c65208c6480ee7a9009f92eb4469d4",
+  "checks": [
+    {
+      "command": "make gemm-large-study",
+      "result": "passed",
+      "log": "obj_dir/gemm-large-study.log",
+      "log_sha256": "eed82aaaab8e3ffef138684b00874d5bf578cb3e0fe7ea74db3bf675fa534f72"
+    },
+    {
+      "command": "make gemm-large-audit",
+      "result": "passed",
+      "log": "obj_dir/gemm-large-audit.log",
+      "log_sha256": "b9741ed4453b07ad38138457c84b2bcd1cd909b2c0e4d451685cfb46d55f70a2"
+    }
+  ],
+  "square_orders": [
+    64,
+    128
+  ],
+  "primary_configurations": 60,
+  "baseline_calibration_configurations": 12,
+  "outputs_checked_per_job": {
+    "64": 4096,
+    "128": 16384
+  },
+  "output_comparisons_per_primary_sweep": 614400,
+  "measured_row_commands": 1920,
+  "code_write_rejection_configurations": 6,
+  "unsupported_size_argument_rejections": 4,
+  "binary_trace_comparison": "exact byte-for-byte comparison of every accepted fetch PC and miss flag",
+  "compressed_trace_predictions": 12,
+  "trace_comparator_rejects_truncated_extra_altered_bytes": true,
+  "cache_equation_and_disjoint_state_partitions_verified": true,
+  "buffer_index_127_configurations": 10,
+  "last_output_address": "0x3fffc",
+  "production_rtl_defaults_unchanged": true,
+  "historical_measured_source_files_unchanged": 90,
+  "historical_numerical_evidence_unchanged": true,
+  "readme_summaries_intentionally_shortened": true,
+  "historical_make_verify_receipt": {
+    "log": "obj_dir/gemm-historical-verify.log",
+    "log_sha256": "6ea1a6cde851ba78c5ea3879fb6f6fb0b12cbea6d93568439284f33a7888b16b",
+    "note": "Previously passed; source identities still match. No redundant full-suite rerun."
+  },
+  "audit_source_sha256": "f6e74b82d484158451d3c6dd4123b0ce2a261d094477952a3ce56ebb505c752d",
+  "whole_job_boundary": "reset release through accepted completion-signature store inclusive",
+  "host_operand_placement_included": false,
+  "layout_conversion_included": false,
+  "whitespace_check": "git diff --check and git diff --cached --check"
+}

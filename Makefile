@@ -6,6 +6,9 @@ VERIFY_SCRIPT := ./scripts/verify.sh
 
 help:
 	@echo "OpenCoreX verification targets:"
+	@echo "  make gemm-large-study Run 64x64 and 128x128 matrix multiplication"
+	@echo "  make gemm-large-check Check recorded larger GEMM evidence"
+	@echo "  make gemm-large-audit Audit saved larger GEMM results without simulation"
 	@echo "  make gemm-study   Run 16x16 and 32x32 matrix-matrix verification"
 	@echo "  make gemm-check   Check recorded matrix-matrix evidence"
 	@echo "  make tiling-study Run the 120-case larger-vector comparison"
@@ -70,3 +73,13 @@ gemm-study:
 
 gemm-check:
 	@python3 scripts/run_gemm_study.py --check
+
+.PHONY: gemm-large-study gemm-large-check gemm-large-audit
+gemm-large-study:
+	@python3 scripts/run_gemm_large.py
+
+gemm-large-check:
+	@python3 scripts/run_gemm_large.py --check
+
+gemm-large-audit:
+	@python3 scripts/check_gemm_large_records.py

@@ -6,6 +6,8 @@ VERIFY_SCRIPT := ./scripts/verify.sh
 
 help:
 	@echo "OpenCoreX verification targets:"
+	@echo "  make gemm-study   Run 16x16 and 32x32 matrix-matrix verification"
+	@echo "  make gemm-check   Check recorded matrix-matrix evidence"
 	@echo "  make tiling-study Run the 120-case larger-vector comparison"
 	@echo "  make tiling-check Check recorded larger-vector evidence"
 	@echo "  make scaling-study Run the 60-case output-count comparison"
@@ -61,3 +63,10 @@ tiling-study:
 
 tiling-check:
 	@python3 scripts/run_tiling_study.py --check
+
+.PHONY: gemm-study gemm-check
+gemm-study:
+	@python3 scripts/run_gemm_study.py
+
+gemm-check:
+	@python3 scripts/run_gemm_study.py --check

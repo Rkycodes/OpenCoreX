@@ -5,6 +5,8 @@ VERIFY_SCRIPT := ./scripts/verify.sh
 .PHONY: help latency-sweep diagnostics cold-warm lint test test-errors verify clean
 
 help:
+	@echo "  make mac-study    Measure MAC fusion for square GEMM"
+	@echo "  make mac-plot     Plot the recorded MAC study"
 	@echo "OpenCoreX verification targets:"
 	@echo "  make gemm-large-study Run 64x64 and 128x128 matrix multiplication"
 	@echo "  make gemm-large-check Check recorded larger GEMM evidence"
@@ -83,3 +85,10 @@ gemm-large-check:
 
 gemm-large-audit:
 	@python3 scripts/check_gemm_large_records.py
+
+.PHONY: mac-study mac-plot
+mac-study:
+	@python3 scripts/run_mac_study.py
+
+mac-plot:
+	@python3 scripts/plot_mac.py

@@ -645,6 +645,9 @@ module controller_tb;
                     endcase
                 end
 
+                7'b0001011:
+                    is_legal_encoding = (test_funct3 == 0 && test_funct7 == 1);
+
                 // ADDI
                 7'b0010011:
                     is_legal_encoding = (test_funct3 == 3'b000);
@@ -749,7 +752,8 @@ module controller_tb;
 
                         if (expected_legal) begin
                             case (opcode)
-                                7'b0110011:
+                                7'b0110011,
+                                7'b0001011:
                                     expected_exec_controls = R_EXEC_CONTROLS;
 
                                 7'b0010011:
@@ -793,17 +797,17 @@ module controller_tb;
                 end
             end
 
-            if (legal_count != 1670)
+            if (legal_count != 1671)
                 $fatal(
                     1,
-                    "Incorrect legal count: actual=%0d expected=1542",
+                    "Incorrect legal count: actual=%0d expected=1671",
                     legal_count
                 );
 
-            if (illegal_count != 129402)
+            if (illegal_count != 129401)
                 $fatal(
                     1,
-                    "Incorrect illegal count: actual=%0d expected=129530",
+                    "Incorrect illegal count: actual=%0d expected=129401",
                     illegal_count
                 );
 

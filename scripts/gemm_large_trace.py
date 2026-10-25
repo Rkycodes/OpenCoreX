@@ -38,6 +38,10 @@ def trace(mode, k):
         if op == 0x13:
             assert f3 == 0
             regs[rd] = a + signed(ins >> 20, 12)
+        elif op == 0x0b:
+            assert ins >> 25 == 1 and f3 == 0
+            regs[rd] += signed(a) * signed(b)
+            traffic["cpu_macs"] += 1
         elif op == 0x33:
             if ins >> 25 == 1:
                 assert f3 == 0

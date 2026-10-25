@@ -631,16 +631,16 @@ module datapath_tb;
         capture_instruction(encode_addi(12'b0, 5'd9, 5'd0));
         check_32(dut.ReadData1, 32'b0, "reserved writeback selection writes known zero");
 
-        //Reserved operand-mux selections also produce known zero values, This
-        //prevents X propagation if the controller ever emits encoding 11
+        // MAC source selections: ALUOut product plus old rd through port 1.
+        capture_instruction(encode_addi(12'b0, 5'd0, 5'd5));
         ALUSrcA = 2'b11;
         ALUSrcB = 2'b11;
         ALUOp   = 2'b00;
         #1;
 
-        check_32(dut.ALUOperandA, 32'b0, "reserved ALUSrcA selection produces zero");
-        check_32(dut.ALUOperandB, 32'b0, "reserved ALUSrcB selection produces zero");
-        check_32(dut.ALUResult,   32'b0, "reserved operand selections produce known ALU result");
+        check_32(dut.ALUOperandA, 32'd16, "MAC ALUSrcA selects saved product");
+        check_32(dut.ALUOperandB, 32'd7, "MAC ALUSrcB reads rd rather than rs1");
+        check_32(dut.ALUResult,   32'd23, "MAC reuses ALU adder");
 
         ALUOp = 2'b11;
         #1;

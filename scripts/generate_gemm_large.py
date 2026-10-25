@@ -24,11 +24,11 @@ def operands(s):
     return a, b, expected
 
 
-def generate(check=False):
+def generate(check=False, modes=MODES):
     HEX.mkdir(parents=True, exist_ok=True)
     for s in SIZES:
         a, b, expected = operands(s)
-        for mode in MODES:
+        for mode in modes:
             code = program(mode, s)
             constants = [A, B, C, s, s, 4*s, 0x40000000] + [0]*57
             constants[(SIGNATURE-CONSTANTS)//4] = rv.COMPLETION_SIGNATURE

@@ -39,7 +39,7 @@ module controller (
     output logic       error
 );
 
-    typedef enum logic [3:0] {
+    typedef enum logic [4:0] {
         FETCH,
         FETCH_CAPTURE,
         DECODE,
@@ -55,7 +55,8 @@ module controller (
         BRANCH_COMPARE,
         JUMP_TARGET,
         JUMP_COMPLETE,
-        ERROR
+        ERROR,
+        MAC_ACCUM
     } state_t;
 
     state_t current_state;
@@ -84,7 +85,8 @@ module controller (
                     next_state = DECODE;
             end
 
-            R_EXEC: next_state = ALU_WRITEBACK;
+            R_EXEC: next_state = (opcode == 7'b0001011) ? MAC_ACCUM : ALU_WRITEBACK;
+            MAC_ACCUM: next_state = ALU_WRITEBACK;
             I_EXEC: next_state = ALU_WRITEBACK;
             ALU_WRITEBACK: next_state = FETCH;
 
@@ -126,6 +128,13 @@ module controller (
                             default:
                                 next_state = ERROR;
                         endcase
+                    end
+
+                    7'b0001011: begin // custom MAC, low-word accumulation
+                        if (funct3 == 3'b000 && funct7 == 7'b0000001)
+                            next_state = R_EXEC;
+                        else
+                            next_state = ERROR;
                     end
 
                     7'b0010011: begin
@@ -232,6 +241,12 @@ module controller (
                 ALUOutWrite = 1'b1;
                 ALUSrcA = 2'b10;
                 ALUOp = 2'b10;
+            end
+
+            MAC_ACCUM: begin
+                ALUOutWrite = 1'b1;
+                ALUSrcA = 2'b11; // prior low product in ALUOut
+                ALUSrcB = 2'b11; // old rd through read port 1
             end
 
             I_EXEC: begin

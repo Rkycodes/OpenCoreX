@@ -21,7 +21,8 @@ module opencorex_gemm_large_tb #(parameter bit CACHE_ENABLE=0);
     int literal_reads=0,signature_reads=0;
     int mmio_w=0,mmio_r=0,mmio_responses=0,blocked=0,busy_blocked=0,busy_cycles=0;
     int fetch_wait=0,data_wait=0,pim_wait=0,cpu_fetch_wait=0,ram_writes=0,other_writes=0;
-    int states [0:15];
+    int states [0:16];
+    int cpu_macs=0;
     int commands_started=0,command_cycles=0,command_final=-1;
     int trace_file=0,last_index_writes=0,last_index_reads=0;
     int start_edge=-1,final_edge=-1,done_edge=-1,buffer_writes=0,buffer_reads=0,begin_vector=0;
@@ -39,7 +40,7 @@ module opencorex_gemm_large_tb #(parameter bit CACHE_ENABLE=0);
         if (!$value$plusargs("N=%d",n)) n=16;
         k=n;
         if (!$value$plusargs("DELAY=%d",read_delay)) read_delay=1;
-        if ((mode<1 || mode>3) || (n!=16 && n!=32 && n!=64 && n!=128) ||
+        if ((mode<1 || mode>4) || (n!=16 && n!=32 && n!=64 && n!=128) ||
             read_delay<1 || read_delay>20) $fatal(1,"invalid GEMM arguments");
         if(!$value$plusargs("TRACE_FILE=%s",trace_path)) $fatal(1,"TRACE_FILE required");
         trace_file=$fopen(trace_path,"wb");
@@ -48,6 +49,7 @@ module opencorex_gemm_large_tb #(parameter bit CACHE_ENABLE=0);
         fetch_delay=read_delay;
         if(mode==1) image=$sformatf("programs/%s/hex/streaming_%0d.hex",directory,k);
         else if(mode==2) image=$sformatf("programs/%s/hex/tiled_%0d.hex",directory,k);
+        else if(mode==4) image=$sformatf("programs/%s/hex/mac_%0d.hex",directory,k);
         else image=$sformatf("programs/%s/hex/offload_%0d.hex",directory,k);
         reference_image=$sformatf("programs/%s/hex/expected_%0d.hex",directory,k);
         foreach(states[i]) states[i]=0;
@@ -90,6 +92,7 @@ module opencorex_gemm_large_tb #(parameter bit CACHE_ENABLE=0);
                 fetch_pending=1; fetch_address=dut.cpu_req_addr; refill_index=0; fetches++;
                 instruction=test_memory.mem[fetch_address>>2];
                 unused_operands=^instruction[24:15];
+                if(instruction[6:0]==7'h0b && instruction[31:25]==1 && instruction[14:12]==0) cpu_macs++;
                 if(instruction[6:0]==7'h33 && instruction[31:25]==1 && instruction[14:12]==0) muls++;
                 if(instruction[6:0]==7'h33 && instruction[31:25]==0 &&
                    instruction[14:12]==0 && (instruction[11:7]==11 || instruction[11:7]==15 ||
@@ -152,10 +155,10 @@ module opencorex_gemm_large_tb #(parameter bit CACHE_ENABLE=0);
                         refill_reads++; refill_index++;
                     end
                 end else if(memory_address>='h10000 && memory_address<'h10000+32'(4*n*n)) begin
-                    if(memory_address!='h10000+32'(4*((vector_reads/(mode==1?n*n:mode==2?n*n/4:n))*n+vector_reads%n))) $fatal(1,"vector sequence");
+                    if(memory_address!='h10000+32'(4*((vector_reads/(mode==1?n*n:(mode==2 || mode==4)?n*n/4:n))*n+vector_reads%n))) $fatal(1,"vector sequence");
                     vector_reads++;
                 end else if(memory_address>='h20000 && memory_address<'h20000+32'(4*k*n)) begin
-                    if(memory_address!='h20000+32'(4*(mode==2?
+                    if(memory_address!='h20000+32'(4*((mode==2 || mode==4)?
                         ((matrix_reads%(n*n))/(4*k))*(4*k)+(matrix_reads%4)*k+(matrix_reads%(4*k))/4:
                         matrix_reads%(n*n)))) $fatal(1,"matrix sequence");
                     matrix_reads++;
@@ -247,9 +250,9 @@ module opencorex_gemm_large_tb #(parameter bit CACHE_ENABLE=0);
         for(int i=0;i<k*n;i++)
             if(test_memory.mem['h8000+i]!==original_matrix[i]) $fatal(1,"matrix modified");
         if(test_memory.mem['h111]!==32'h524b5943) $fatal(1,"stored completion");
-        if(vector_reads!=(mode==1?n*n*n:mode==2?n*n*n/4:n*n) || matrix_reads!=n*n*n ||
+        if(vector_reads!=(mode==1?n*n*n:(mode==2 || mode==4)?n*n*n/4:n*n) || matrix_reads!=n*n*n ||
            outputs!=n*n || completion!=1 ||
-           muls!=(mode!=3?n*n*n:0) || adds!=(mode!=3?n*n*n:0) ||
+           muls!=(mode<=2?n*n*n:0) || adds!=(mode<=2?n*n*n:0) ||
            macs!=(mode==3?n*n*n:0) || mmio_w!=(mode==3?7*n:0) || mmio_r!=(mode==3?n:0) ||
            mmio_responses!=mmio_r) $fatal(1,"unexpected GEMM counters");
         if(literal_reads!=(mode==3?6+n:5) || signature_reads!=1)
@@ -272,7 +275,9 @@ module opencorex_gemm_large_tb #(parameter bit CACHE_ENABLE=0);
         $display("EXTRA,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d",
             reads,ram_writes,other_writes,literal_reads,signature_reads,buffer_writes,buffer_reads,
             commands_started,command_cycles,begin_vector,last_index_writes,last_index_reads);
-        for(int i=0;i<16;i++) $display("STATE,%0d,%0d",i,states[i]);
+        if(cpu_macs!=(mode==4?n*n*n:0)) $fatal(1,"CPU MAC count");
+        $display("MAC,%0d",cpu_macs);
+        for(int i=0;i<(mode==4?17:16);i++) $display("STATE,%0d,%0d",i,states[i]);
         $display("PASS: opencorex_gemm_large_tb N=%0d",n);
         $fclose(trace_file);
         $finish;

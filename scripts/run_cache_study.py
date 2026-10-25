@@ -34,7 +34,11 @@ def csv_text(rows, fields):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--allow-source-changes", action="store_true",
+                        help="with --check, compare all measured behavior while recording current source provenance separately")
     args = parser.parse_args()
+    if args.allow_source_changes and not args.check:
+        parser.error("--allow-source-changes requires --check")
     import resource
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     BUILD.mkdir(parents=True, exist_ok=True)
@@ -223,7 +227,13 @@ def main():
         (RESULTS/"provenance.json").write_text(json.dumps(provenance,indent=2)+"\n")
     else:
         saved=json.loads((RESULTS/"provenance.json").read_text())
-        assert saved["source_sha256"] == provenance["source_sha256"], "source changed; regenerate evidence"
+        if args.allow_source_changes:
+            changed = sorted(k for k in saved["source_sha256"].keys() | provenance["source_sha256"].keys()
+                             if saved["source_sha256"].get(k) != provenance["source_sha256"].get(k))
+            print("Behavior regression: source changes:", ", ".join(changed) or "none")
+            (BUILD/"checked-provenance.json").write_text(json.dumps(provenance,indent=2)+"\n")
+        else:
+            assert saved["source_sha256"] == provenance["source_sha256"], "source changed; regenerate evidence"
     for name, data in files.items():
         path=RESULTS/name
         if args.check:

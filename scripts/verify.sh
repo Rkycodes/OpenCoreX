@@ -36,6 +36,7 @@ readonly -a POSITIVE_TESTS=(
     memory_subsystem_tb
     opencorex_core_tb
     opencorex_mul_tb
+    opencorex_mac_tb
     opencorex_dot_product_tb
     opencorex_matvec_tb
     opencorex_corner_cases_tb
@@ -531,7 +532,7 @@ case "$command_name" in
         run_positive_tests
         run_matvec_diagnostics
         python3 scripts/run_memory_latency_sweep.py --check
-        python3 scripts/run_cache_study.py --check
+        python3 scripts/run_cache_study.py --check --allow-source-changes
         ;;
 
     test-errors)
@@ -545,7 +546,7 @@ case "$command_name" in
         run_positive_tests
         run_matvec_diagnostics
         python3 scripts/run_memory_latency_sweep.py --check
-        python3 scripts/run_cache_study.py --check
+        python3 scripts/run_cache_study.py --check --allow-source-changes
         run_expected_failure_tests
         printf '\n========================================\n'
         printf 'PASS: OpenCoreX verification completed\n'

@@ -65,7 +65,7 @@ module datapath (
 
     register_file register_file_inst (
         .clk(clk),
-        .read_addr_1(IR[19:15]), //rs1
+        .read_addr_1((ALUSrcB == 2'b11) ? IR[11:7] : IR[19:15]), // MAC rd or rs1
         .read_addr_2(IR[24:20]), //rs2
         .write_addr(IR[11:7]), //rd
         .write_data(WriteData),
@@ -104,6 +104,7 @@ module datapath (
             2'b00: ALUOperandA = PC;
             2'b01: ALUOperandA = OldPC;
             2'b10: ALUOperandA = A;
+            2'b11: ALUOperandA = ALUOut; // MAC product
             default: begin
                 //retain safe zero default.
             end
@@ -113,6 +114,7 @@ module datapath (
             2'b00: ALUOperandB = B;
             2'b01: ALUOperandB = 32'd4;
             2'b10: ALUOperandB = Immediate;
+            2'b11: ALUOperandB = ReadData1; // old MAC accumulator
             default: begin
                 //retain zero default
             end

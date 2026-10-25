@@ -4,6 +4,7 @@ The [root README](../README.md) summarizes the implemented system, repository la
 
 ## Architecture
 
+- [CPU MAC ISA and microarchitecture](architecture/cpu-mac-extension.md) and [measured fusion study](evaluation/mac-results/README.md)
 - [Multicycle CPU architecture v0.1](architecture/architecture-v0.1.md), [BNE extension](architecture/bne-extension.md), and [scalar MUL extension](architecture/scalar-mul-extension.md)
 - [Memory interface v0.1](architecture/memory-interface-v0.1.md) and [Phase 1 shared-memory interface](architecture/pim-memory-interface.md)
 - [PIM architecture v0.1](architecture/pim-architecture-v0.1.md) and [module interface contract](architecture/pim-module-interfaces-v0.1.md)

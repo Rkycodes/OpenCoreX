@@ -429,6 +429,11 @@ def mul(rd: int, rs1: int, rs2: int) -> int:
     )
 
 
+def mac(rd: int, rs1: int, rs2: int) -> int:
+    """OpenCoreX custom-0 low-word accumulating multiply."""
+    return encode_r_type(funct7=1, rs2=rs2, rs1=rs1, funct3=0, rd=rd, opcode=0x0b)
+
+
 def bne(rs1: int, rs2: int, immediate: int) -> int:
     return encode_b_type(
         immediate=immediate,

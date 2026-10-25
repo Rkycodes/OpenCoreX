@@ -36,7 +36,7 @@ def program(mode, s):
     def bne(a, b, name):
         branches.append((len(code), a, b, name))
         emit(0)
-    if mode in ("streaming", "tiled"):
+    if mode in ("streaming", "tiled", "mac"):
         emit(*[rv.lw(r, 0, CONSTANTS+4*i) for i, r in enumerate((5, 19, 7, 21, 9))], rv.addi(20, 21, 0))
         label("row")
         emit(rv.addi(6, 19, 0), rv.addi(8, 21, 0))
@@ -46,11 +46,13 @@ def program(mode, s):
         label("reduction")
         emit(rv.lw(12, 10))
         for j, r in enumerate(accum):
-            emit(rv.lw(18, 6, 4*s*j), rv.mul(14, 12, 18), rv.add(r, r, 14))
+            emit(rv.lw(18, 6, 4*s*j))
+            if mode == "mac": emit(rv.mac(r, 12, 18))
+            else: emit(rv.mul(14, 12, 18), rv.add(r, r, 14))
         emit(rv.addi(10, 10, 4), rv.addi(6, 6, 4), rv.addi(13, 13, -1))
         bne(13, 0, "reduction")
         emit(*[rv.sw(r, 7, 4*j) for j, r in enumerate(accum)])
-        if mode == "tiled": emit(rv.addi(6, 6, 12*s))
+        if mode in ("tiled", "mac"): emit(rv.addi(6, 6, 12*s))
         emit(rv.addi(7, 7, 4*len(accum)), rv.addi(8, 8, -len(accum)))
         bne(8, 0, "column")
         emit(rv.addi(5, 5, 4*s), rv.addi(20, 20, -1))
@@ -74,15 +76,15 @@ def program(mode, s):
     if mode == "offload": emit(rv.jal(0, 0))
     for index, a, b, target in branches:
         code[index] = rv.bne(a, b, labels[target]-(KERNEL+4*index))
-    assert len(code) == {"streaming":29, "tiled":45, "offload":29}[mode]
+    assert len(code) == {"streaming":29, "tiled":45, "mac":41, "offload":29}[mode]
     return code
 
 
-def generate(check=False):
+def generate(check=False, modes=MODES):
     HEX.mkdir(parents=True, exist_ok=True)
     for s in SIZES:
         a, b, expected = operands(s)
-        for mode in MODES:
+        for mode in modes:
             code = program(mode, s)
             constants = [A, B, C, s, s, 4*s, 0x40000000] + [0]*57
             constants[(SIGNATURE-CONSTANTS)//4] = rv.COMPLETION_SIGNATURE

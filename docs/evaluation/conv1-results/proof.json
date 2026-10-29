@@ -1,0 +1,98 @@
+{
+  "outputs_per_case": 1280,
+  "cases": [
+    "small",
+    "wrap"
+  ],
+  "stages": [
+    "raw",
+    "biased",
+    "final"
+  ],
+  "checked_words": 7680,
+  "packed_words_per_case": 540,
+  "padding_entries_per_case": 150,
+  "rtl_runs": 24,
+  "rtl_stage_words_checked": 92160,
+  "rtl_packed_words_checked": 12960,
+  "negative_checks": [
+    {
+      "fault": "CODE_WRITE",
+      "message": "unexpected RAM write",
+      "log": "obj_dir/verification/conv1/rtl_1/reject_code_write.log"
+    },
+    {
+      "fault": "BAD_BIAS",
+      "message": "biased intermediate mismatch",
+      "log": "obj_dir/verification/conv1/rtl_1/reject_bad_bias.log"
+    }
+  ],
+  "images": {
+    "small_streaming": {
+      "image": "obj_dir/verification/conv1/images/small_streaming.hex",
+      "bias_pc": 4428,
+      "code_words": 96,
+      "image_text_bytes": 34119,
+      "placed_words": 3781,
+      "sha256": "44836408dbe053a2c4405567c10ac9cc681515fd904f1e8846f49de7259a8d1c"
+    },
+    "small_tiled": {
+      "image": "obj_dir/verification/conv1/images/small_tiled.hex",
+      "bias_pc": 4492,
+      "code_words": 112,
+      "image_text_bytes": 34263,
+      "placed_words": 3797,
+      "sha256": "dadc34a1d26ea8481dbf42e4d4b8b60829b10985fc1dddd97cf617c46caead6c"
+    },
+    "small_mac": {
+      "image": "obj_dir/verification/conv1/images/small_mac.hex",
+      "bias_pc": 4476,
+      "code_words": 108,
+      "image_text_bytes": 34227,
+      "placed_words": 3793,
+      "sha256": "f79fc3d3c8cbd8aed6516ae93a71b820080d75cfbc5ea7c1deb09898d371676b"
+    },
+    "small_offload": {
+      "image": "obj_dir/verification/conv1/images/small_offload.hex",
+      "bias_pc": 4424,
+      "code_words": 96,
+      "image_text_bytes": 34128,
+      "placed_words": 3782,
+      "sha256": "55b324578bb16d06387e183d9f94277dedb290fc4d760fdb2530d7d1e0674b65"
+    },
+    "wrap_streaming": {
+      "image": "obj_dir/verification/conv1/images/wrap_streaming.hex",
+      "bias_pc": 4428,
+      "code_words": 96,
+      "image_text_bytes": 34119,
+      "placed_words": 3781,
+      "sha256": "b5ea5ce71317ee43b3e82ed0d6a5b7a18472007ec0a2faaebf2081312e386bb5"
+    },
+    "wrap_tiled": {
+      "image": "obj_dir/verification/conv1/images/wrap_tiled.hex",
+      "bias_pc": 4492,
+      "code_words": 112,
+      "image_text_bytes": 34263,
+      "placed_words": 3797,
+      "sha256": "0b0bc43a0e449a151dc95016cfff143e40038e09d537b14a942ae5c32aefa564"
+    },
+    "wrap_mac": {
+      "image": "obj_dir/verification/conv1/images/wrap_mac.hex",
+      "bias_pc": 4476,
+      "code_words": 108,
+      "image_text_bytes": 34227,
+      "placed_words": 3793,
+      "sha256": "5c2ae296b6f07aa313272778537b40d01f0ec4dbf6258c1280afc2bc630334f1"
+    },
+    "wrap_offload": {
+      "image": "obj_dir/verification/conv1/images/wrap_offload.hex",
+      "bias_pc": 4424,
+      "code_words": 96,
+      "image_text_bytes": 34128,
+      "placed_words": 3782,
+      "sha256": "57299882bb18dca6dda4bc408818b43e866705015f291f66a98af5d614bce077"
+    }
+  },
+  "generator_and_reference_wall_seconds": 0.0938796190021094,
+  "immutable_operand_bytes": 7408
+}

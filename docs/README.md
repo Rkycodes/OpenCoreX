@@ -16,6 +16,7 @@ The v0.1 architecture and PIM interface documents retain their dated design deci
 
 - [VGG conv1_1 mapping and comparison contract](evaluation/vgg-conv1_1-mapping.md)
 - [Measured conv1_1 CPU/GEMV results and graphs](evaluation/conv1-results/README.md)
+- [Conv1_1 weight-reuse mapping](evaluation/vgg-conv1_1-weight-reuse.md) and [D/E comparison](evaluation/conv1-weight-reuse-results/README.md)
 
 - [Square GEMM contract](evaluation/gemm-contract.md) and [16×16/32×32 results](evaluation/gemm-results/README.md)
 - [64×64/128×128 GEMM](evaluation/gemm-large-results/README.md) and [capacity/trace contract](evaluation/gemm-large-contract.md)

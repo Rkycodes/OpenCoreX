@@ -106,3 +106,17 @@ conv1-plot:
 
 conv1-audit:
 	@python3 scripts/run_conv1_study.py --audit
+
+.PHONY: conv1-weight-reuse-proof conv1-weight-reuse-study conv1-weight-reuse-plot conv1-weight-reuse-audit
+conv1-weight-reuse-proof:
+	@python3 scripts/conv1_weight_reuse_trace.py
+	@python3 scripts/generate_conv1_weight_reuse.py --check
+
+conv1-weight-reuse-study:
+	@python3 scripts/run_conv1_weight_reuse.py
+
+conv1-weight-reuse-plot:
+	@python3 scripts/plot_conv1_weight_reuse.py
+
+conv1-weight-reuse-audit:
+	@python3 scripts/run_conv1_weight_reuse.py --audit

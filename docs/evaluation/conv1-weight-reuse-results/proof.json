@@ -1,0 +1,49 @@
+{
+  "rtl_runs": 6,
+  "rtl_stage_words_checked": 23040,
+  "rtl_gathered_raw_reads_checked": 7680,
+  "rtl_packed_words_checked": 3240,
+  "negative_checks": [
+    {
+      "fault": "CODE_WRITE",
+      "message": "unexpected RAM write",
+      "log": "obj_dir/verification/conv1_weight_reuse/rtl_1/reject_code_write.log"
+    },
+    {
+      "fault": "BAD_BIAS",
+      "message": "biased intermediate mismatch",
+      "log": "obj_dir/verification/conv1_weight_reuse/rtl_1/reject_bad_bias.log"
+    },
+    {
+      "fault": "BAD_GATHER",
+      "message": "postprocessing raw read",
+      "log": "obj_dir/verification/conv1_weight_reuse/rtl_1/reject_bad_gather.log"
+    }
+  ],
+  "images": {
+    "small": {
+      "image": "obj_dir/verification/conv1_weight_reuse/images/small_weights.hex",
+      "bias_pc": 4432,
+      "code_words": 100,
+      "image_text_bytes": 45703,
+      "placed_words": 5067,
+      "sha256": "2fa017093f5d312d8235f5feb58db1f4013b3e13c2526b51389bce70c0b573b6",
+      "common_packer_words": 45,
+      "common_packer_sha256": "c4d5151fce91b8ed57c340fdf753d4a63ce6086aa736e0d7546002e39812f130"
+    },
+    "wrap": {
+      "image": "obj_dir/verification/conv1_weight_reuse/images/wrap_weights.hex",
+      "bias_pc": 4432,
+      "code_words": 100,
+      "image_text_bytes": 45703,
+      "placed_words": 5067,
+      "sha256": "bb1270f4ba64afc27a74b54525cada779a875ef3f5c1418a4e93af08ff88c068",
+      "common_packer_words": 45,
+      "common_packer_sha256": "c4d5151fce91b8ed57c340fdf753d4a63ce6086aa736e0d7546002e39812f130"
+    }
+  },
+  "baseline_image_identity": "all eight A-D images match the original proof receipt",
+  "generator_and_reference_wall_seconds": 0.356988817002275,
+  "extra_raw_output_bytes": 5120,
+  "software_reordering": "fused with bias/ReLU; no extra RAM copy pass"
+}

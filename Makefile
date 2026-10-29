@@ -92,3 +92,17 @@ mac-study:
 
 mac-plot:
 	@python3 scripts/plot_mac.py
+
+.PHONY: conv1-proof conv1-study conv1-plot conv1-audit
+conv1-proof:
+	@python3 scripts/generate_conv1.py
+	@python3 scripts/conv1_trace.py
+
+conv1-study:
+	@python3 scripts/run_conv1_study.py
+
+conv1-plot:
+	@python3 scripts/plot_conv1.py
+
+conv1-audit:
+	@python3 scripts/run_conv1_study.py --audit

@@ -11,6 +11,7 @@ E buffers one filter's 27 weights and streams all 20 patches, launching
 64 commands. Multiplication order changes; the dot products do not.
 
 For filter f, E programs:
+
 - VECTOR_BASE = WEIGHTS + 108*f; VECTOR_LENGTH = 27.
 - MATRIX_BASE = PATCH; MATRIX_COLUMN_STRIDE = 108 bytes.
 - OUTPUT_BASE = FILTER_OUTPUT + 80*f; OUTPUT_COUNT = 20.
@@ -63,3 +64,8 @@ Save E receipts and D/E comparison graphs separately from historical A-D results
 Verify baseline source/image identities before comparing the saved D rows.
 Include CPU packing, launches/status, fused reordering/bias/ReLU and completion.
 Host placement remains excluded. Run focused simulation and make verify.
+
+
+The predicted counts are checked in the [measured D/E results](conv1-weight-reuse-results/README.md).
+Use make conv1-weight-reuse-proof, make conv1-weight-reuse-study,
+make conv1-weight-reuse-audit and make conv1-weight-reuse-plot to reproduce.

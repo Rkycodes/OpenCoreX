@@ -1,0 +1,18 @@
+{
+  "matplotlib": "3.11.2",
+  "script_sha256": "e431e769d0ea1354bd1d83e601dc6701842327d9709160dfa31e5b61e5306b91",
+  "source_csv_sha256": {
+    "docs/evaluation/conv1-weight-reuse-results/programs.csv": "f730add66cc4e2208f5dfd79a02faaa29adfca632af016c2773d1f561db7192f",
+    "docs/evaluation/conv1-results/programs.csv": "461ad7c99e9298ae10eda613f1fa9e65d450a7e21b4dda4d10a122cec03e4b09"
+  },
+  "report_artifact_sha256": {
+    "extra-cycles.png": "cd6d3abafb6554e0578565a0f832b0f667847ef9f00d72801e0b3d5ac94f09df",
+    "operand-traffic.png": "29745f30e043d5308c97507b47f71ed6e42ccc3a9661106ee319b15a7d6303a8",
+    "whole-job.png": "b5e7d022504122b7ea50a6a321a3f3e75b3f9bbc66e4145a592858b3b0553946",
+    "operand-traffic.svg": "3f64db1e4eda1d5bfd71431615c85df5157574669f6a03dfa93a5c953da6607b",
+    "extra-cycles.svg": "f46c9d92ae699e173560e4cbea4cc15dd115aeac5e3fa0f92d869c994fb48059",
+    "whole-job.svg": "4e7c9ce533c08129a8dc8c375cd76168b8a70381c2e1126bf45fceaef7e206ac",
+    "README.md": "1f678753653928bd863607829f2dd29eb119d0a7cf7bdbff1c567d019597f6b0",
+    "comparison.json": "ba657dd7f83603c3493226d9ea1a9c71c4d9614510ebca95156aa196e8e17567"
+  }
+}

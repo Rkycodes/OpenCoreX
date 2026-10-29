@@ -98,3 +98,7 @@ Save measured CSVs, source/image hashes, versions and exact commands. Graphs
 must use actual RTL measurements. Generator/proof, focused study and plotting
 commands accompany the implementation. Run make verify if shared RTL or
 verification infrastructure changes.
+
+Use make conv1-proof, make conv1-study and make conv1-audit to reproduce/check
+execution. Run make conv1-plot and python3 scripts/analyze_conv1.py for graphs
+and analysis. See [measured results and limits](conv1-results/README.md).

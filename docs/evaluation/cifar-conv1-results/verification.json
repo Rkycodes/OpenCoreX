@@ -1,0 +1,121 @@
+{
+  "verification": [
+    {
+      "command": "make verify",
+      "revision": "0881ca8fa4fc10b1b5be919f1f5e49dd393b5a76",
+      "status": "passed",
+      "log": {
+        "path": "obj_dir/friday-audit/baseline.log",
+        "sha256": "6e7d8f9a45b239dd1c48c97a07826b7982468ab17611a73f6853bd54c3b1169e"
+      },
+      "positive_testbenches": 36,
+      "latency_configurations": 50,
+      "cache_configurations": 20,
+      "expected_failures": 19
+    },
+    {
+      "command": "make verify",
+      "revision": "f86eb18b950370e058f666f895ca346f10d76d85",
+      "status": "passed",
+      "log": {
+        "path": "obj_dir/friday-audit/final-verify.log",
+        "sha256": "84b7fb1c28fb6b82a97a42f8759c9b80ac77a774bedb0e54f37a869209382079"
+      },
+      "positive_testbenches": 36,
+      "latency_configurations": 50,
+      "cache_configurations": 20,
+      "expected_failures": 19
+    }
+  ],
+  "historical_convolution": [
+    {
+      "command": "python3 scripts/run_conv1_study.py --output obj_dir/friday-audit/small-original",
+      "status": "passed",
+      "configurations": 24,
+      "matches_saved_measurements": true,
+      "log": {
+        "path": "obj_dir/friday-audit/small-original.log",
+        "sha256": "1e824d5e4f20e8f1daabf54bbcd8b30de6d6efb3c05eb5ba5a884b9c6e2a4e46"
+      }
+    },
+    {
+      "command": "python3 scripts/run_conv1_weight_reuse.py --output obj_dir/friday-audit/small-weights",
+      "status": "passed",
+      "configurations": 6,
+      "matches_saved_measurements": true,
+      "log": {
+        "path": "obj_dir/friday-audit/small-weights.log",
+        "sha256": "6e60e6c60b54dc3997b85fed1f4ff1c3bd681bc8b5eb40188764a96c0aaae262"
+      }
+    }
+  ],
+  "full_convolution": {
+    "command": "make cifar-conv1-study",
+    "status": "passed",
+    "configurations": 8,
+    "checked_output_words": 524288,
+    "manifest": "manifest.json",
+    "log": {
+      "path": "obj_dir/friday-audit/cifar-study.log",
+      "sha256": "3d1f7d5f84895954dea1431f708faa2dc0f4cd6503d8acbd5735ca8adc7c6634"
+    },
+    "rejected_faults": [
+      {
+        "path": "obj_dir/friday-audit/cifar-reject-golden.log",
+        "sha256": "e005ea830e89bde4f8b218ce5c6360272a4c46f8655430c596e3d2c9a35b7aa0"
+      },
+      {
+        "path": "obj_dir/friday-audit/cifar-reject-cold.log",
+        "sha256": "7408f61fcd97ea4bfda832b9df3315a609b3fde30527a8c7b5b2beafe1b09558"
+      }
+    ]
+  },
+  "matrix_regression": [
+    {
+      "command": "make gemm-check",
+      "rtl_configurations": 60,
+      "status": "historical provenance mismatch",
+      "changed_source_paths": [
+        "rtl/cpu/controller.sv",
+        "rtl/cpu/datapath.sv",
+        "scripts/generate_gemm.py",
+        "scripts/generate_matvec_1x16_16x32.py",
+        "scripts/run_cache_study.py"
+      ],
+      "log": {
+        "path": "obj_dir/friday-audit/gemm.log",
+        "sha256": "622d031a0c953562f3d709ef0486fe99645f680fdc00b3382464f5965e3fa6b6"
+      },
+      "data_comparison": {
+        "path": "obj_dir/friday-audit/gemm-data-only.log",
+        "sha256": "5e6c28d81559c1f753e72018425a285e3deb73c77fa76f30f1928241ea4d68ae"
+      }
+    },
+    {
+      "command": "make gemm-large-check",
+      "rtl_configurations": 60,
+      "calibrations": 12,
+      "rejected_faults": 10,
+      "status": "historical provenance mismatch",
+      "changed_source_paths": [
+        "rtl/cpu/controller.sv",
+        "rtl/cpu/datapath.sv",
+        "scripts/gemm_large_trace.py",
+        "scripts/generate_gemm.py",
+        "scripts/generate_gemm_large.py",
+        "scripts/generate_matvec_1x16_16x32.py",
+        "scripts/run_cache_study.py",
+        "tb/benchmarks/opencorex_gemm_large_tb.sv"
+      ],
+      "log": {
+        "path": "obj_dir/friday-audit/gemm-large.log",
+        "sha256": "a929b61714a4dc1938e0da969b0853a36911ae426d7481fff27075e4bd93f213"
+      },
+      "data_comparison": {
+        "path": "obj_dir/friday-audit/gemm-large-data-only.log",
+        "sha256": "e33d457eccc463af66dd19c9c83c90c2c4e8dca80c27d4f100b9b23197be42bc"
+      }
+    }
+  ],
+  "matrix_provenance_note": "The stored hashes predate 77c25c0. Raw RTL measurements, states and command intervals matched the saved rows for both GEMM suites. Both suites independently checked the outputs and replayed fetches. Historical provenance files were preserved."
+}

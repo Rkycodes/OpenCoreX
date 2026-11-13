@@ -5,6 +5,7 @@ VERIFY_SCRIPT := ./scripts/verify.sh
 .PHONY: help latency-sweep diagnostics cold-warm lint test test-errors verify clean
 
 help:
+	@echo "  make cifar-conv1-study Run full CIFAR Conv1_1 CPU/PIM comparison"
 	@echo "  make mac-study    Measure MAC fusion for square GEMM"
 	@echo "  make mac-plot     Plot the recorded MAC study"
 	@echo "OpenCoreX verification targets:"
@@ -120,3 +121,7 @@ conv1-weight-reuse-plot:
 
 conv1-weight-reuse-audit:
 	@python3 scripts/run_conv1_weight_reuse.py --audit
+
+.PHONY: cifar-conv1-study
+cifar-conv1-study:
+	@python3 scripts/run_cifar_conv1.py

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 262" role="img" aria-labelledby="fig-title fig-desc">
+<title id="fig-title">Cycle change with weight retention</title>
+<desc id="fig-desc">Change relative to activation retention. Negative percentages are faster.</desc>
+<rect width="700" height="262" fill="#f7f9fb"/>
+<g font-family="Arial, sans-serif" fill="#1d3042" font-size="11">
+<text x="14" y="21" font-size="15" font-weight="700">Cycle change with weight retention</text>
+<text x="14" y="39">Relative to activation retention within each row. Negative is faster.</text>
+<rect x="517" y="14" width="9" height="9" fill="#356b92"/>
+<text x="530" y="22">Compute</text>
+<rect x="597" y="14" width="9" height="9" fill="#a84c23"/>
+<text x="610" y="22">Whole job</text>
+<line x1="228.125" x2="228.125" y1="48" y2="236" stroke="#647586"/>
+<text x="228.125" y="254" text-anchor="middle">0%</text>
+<line x1="315.3125" x2="315.3125" y1="48" y2="236" stroke="#dce5ed"/>
+<text x="315.3125" y="254" text-anchor="middle">3%</text>
+<line x1="402.5" x2="402.5" y1="48" y2="236" stroke="#dce5ed"/>
+<text x="402.5" y="254" text-anchor="middle">6%</text>
+<line x1="489.6875" x2="489.6875" y1="48" y2="236" stroke="#dce5ed"/>
+<text x="489.6875" y="254" text-anchor="middle">9%</text>
+<line x1="576.875" x2="576.875" y1="48" y2="236" stroke="#dce5ed"/>
+<text x="576.875" y="254" text-anchor="middle">12%</text>
+<text x="14" y="64">Conv1_1 · L=1</text>
+<rect x="220.07980611492883" y="53" width="8.045193885071171" height="6" fill="#356b92"/>
+<text x="216.07980611492883" y="59" font-size="9" fill="#356b92" text-anchor="end">-0.28%</text>
+<rect x="228.125" y="62" width="403.86623928747383" height="6" fill="#a84c23"/>
+<text x="635.9912392874738" y="68" font-size="9" fill="#a84c23" text-anchor="start">+13.90%</text>
+<text x="14" y="87">Conv1_1 · L=5</text>
+<rect x="208.75603435007707" y="76" width="19.368965649922927" height="6" fill="#356b92"/>
+<text x="204.75603435007707" y="82" font-size="9" fill="#356b92" text-anchor="end">-0.67%</text>
+<rect x="228.125" y="85" width="305.0546003363679" height="6" fill="#a84c23"/>
+<text x="537.1796003363679" y="91" font-size="9" fill="#a84c23" text-anchor="start">+10.50%</text>
+<text x="14" y="110">Conv1_2 · L=1</text>
+<rect x="225.01706853189725" y="99" width="3.1079314681027483" height="6" fill="#356b92"/>
+<text x="221.01706853189725" y="105" font-size="9" fill="#356b92" text-anchor="end">-0.11%</text>
+<rect x="228.125" y="108" width="13.988085900002375" height="6" fill="#a84c23"/>
+<text x="246.11308590000237" y="114" font-size="9" fill="#a84c23" text-anchor="start">+0.48%</text>
+<text x="14" y="133">Conv1_2 · L=5</text>
+<rect x="203.66988330350503" y="122" width="24.45511669649497" height="6" fill="#356b92"/>
+<text x="199.66988330350503" y="128" font-size="9" fill="#356b92" text-anchor="end">-0.84%</text>
+<rect x="223.25975064284376" y="131" width="4.8652493571562445" height="6" fill="#a84c23"/>
+<text x="219.25975064284376" y="137" font-size="9" fill="#a84c23" text-anchor="end">-0.17%</text>
+<text x="14" y="156">Conv2_1 · L=1</text>
+<rect x="222.59517088742348" y="145" width="5.529829112576522" height="6" fill="#356b92"/>
+<text x="218.59517088742348" y="151" font-size="9" fill="#356b92" text-anchor="end">-0.19%</text>
+<rect x="228.125" y="154" width="12.34509834102522" height="6" fill="#a84c23"/>
+<text x="244.47009834102522" y="160" font-size="9" fill="#a84c23" text-anchor="start">+0.42%</text>
+<text x="14" y="179">Conv2_1 · L=5</text>
+<rect x="198.3279532076164" y="168" width="29.79704679238361" height="6" fill="#356b92"/>
+<text x="194.3279532076164" y="174" font-size="9" fill="#356b92" text-anchor="end">-1.03%</text>
+<rect x="219.35839084629515" y="177" width="8.766609153704849" height="6" fill="#a84c23"/>
+<text x="215.35839084629515" y="183" font-size="9" fill="#a84c23" text-anchor="end">-0.30%</text>
+<text x="14" y="202">Conv2_2 · L=1</text>
+<rect x="225.94992543629454" y="191" width="2.175074563705465" height="6" fill="#356b92"/>
+<text x="221.94992543629454" y="197" font-size="9" fill="#356b92" text-anchor="end">-0.07%</text>
+<rect x="228.125" y="200" width="6.606747682802222" height="6" fill="#a84c23"/>
+<text x="238.73174768280222" y="206" font-size="9" fill="#a84c23" text-anchor="start">+0.23%</text>
+<text x="14" y="225">Conv2_2 · L=5</text>
+<rect x="205.34878856845896" y="214" width="22.776211431541043" height="6" fill="#356b92"/>
+<text x="201.34878856845896" y="220" font-size="9" fill="#356b92" text-anchor="end">-0.78%</text>
+<rect x="217.92180458362975" y="223" width="10.20319541637025" height="6" fill="#a84c23"/>
+<text x="213.92180458362975" y="229" font-size="9" fill="#a84c23" text-anchor="end">-0.35%</text>
+</g></svg>

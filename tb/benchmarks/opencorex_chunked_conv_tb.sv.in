@@ -287,6 +287,7 @@ module opencorex_chunked_conv_tb #(parameter bit CACHE_ENABLE = 1);
             if (test_memory.mem[OUTPUT / 4 + i] !== raw[i])
                 $fatal(1, "final stored tensor mismatch at %0d", i);
 
+        metric("applied_delay", read_delay);
         metric("cycles", cycle + 1);
         metric("setup_cycles", phase_cycles[0]);
         metric("packing_cycles", phase_cycles[1]);

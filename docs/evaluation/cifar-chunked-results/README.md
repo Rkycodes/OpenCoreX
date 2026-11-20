@@ -80,7 +80,9 @@ python3 scripts/run_cifar_chunked.py conv1_2 --delay 1 5
 python3 scripts/run_cifar_chunked.py conv2_2 --delay 1 5
 ```
 
-The runner writes per-delay CSVs, provenance manifests, RTL logs and deterministic
-memory images under `obj_dir/verification/cifar_chunked/<layer>/results/`.
-The committed manifests record the code revision, exact modeled parameters,
-address bounds, compiler and simulator commands, and SHA-256 digests.
+New runs write a consolidated CSV, per-case receipts, RTL logs and memory images
+under `obj_dir/verification/cifar_chunked/runs/<run-id>/`. See the
+[latency experiment contract](../cifar-ram-latency-contract.md) and
+[counter schema](../cifar-ram-latency-verification.md). The committed manifests
+record the original endpoint runs, including the code revision, modeled
+parameters, RAM bounds, exact commands, and SHA-256 digests.

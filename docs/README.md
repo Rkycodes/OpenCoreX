@@ -1,43 +1,8 @@
-# Documentation index
+# Documentation
 
-The [root README](../README.md) summarizes the implemented system, repository layout, verification flow, and current limits. The [roadmap](roadmap.md) records milestone status; the [devlog](devlog.md) preserves the chronological development record.
+- [Architecture](architecture/README.md) describes the CPU, accelerator, and shared RAM.
+- [MMIO and memory interface](architecture/mmio-memory.md) describes command submission and the register map.
+- [Evaluation](evaluation/README.md) links the results, workloads, and commands.
+- [Verification](verification/pim-system-regression.md) covers the CPU-driven accelerator regression. Run `make verify` for the suite.
 
-## Architecture
-
-- [CPU MAC ISA and microarchitecture](architecture/cpu-mac-extension.md) and [measured fusion study](evaluation/mac-results/README.md)
-- [Multicycle CPU architecture v0.1](architecture/architecture-v0.1.md), [BNE extension](architecture/bne-extension.md), and [scalar MUL extension](architecture/scalar-mul-extension.md)
-- [Memory interface v0.1](architecture/memory-interface-v0.1.md) and [Phase 1 shared-memory interface](architecture/pim-memory-interface.md)
-- [PIM architecture v0.1](architecture/pim-architecture-v0.1.md) and [module interface contract](architecture/pim-module-interfaces-v0.1.md)
-- [Datapath diagram](architecture/diagrams/opencorex-datapath.svg) and [editable source](architecture/diagrams/opencorex-datapath.drawio)
-
-The v0.1 architecture and PIM interface documents retain their dated design decisions. Their status notes identify what has since been implemented.
-
-## Verification and evaluation
-
-- [Full CIFAR VGG-16 Conv1_1 measurements](evaluation/cifar-conv1-results/programs.csv)
-- [CIFAR VGG-16 chunked convolution retention measurements](evaluation/cifar-chunked-results/README.md)
-- [VGG conv1_1 mapping and comparison contract](evaluation/vgg-conv1_1-mapping.md)
-- [Measured conv1_1 CPU/GEMV results and graphs](evaluation/conv1-results/README.md)
-- [Conv1_1 weight-reuse mapping](evaluation/vgg-conv1_1-weight-reuse.md) and [D/E comparison](evaluation/conv1-weight-reuse-results/README.md)
-
-- [Square GEMM contract](evaluation/gemm-contract.md) and [16×16/32×32 results](evaluation/gemm-results/README.md)
-- [64×64/128×128 GEMM](evaluation/gemm-large-results/README.md) and [capacity/trace contract](evaluation/gemm-large-contract.md)
-
-- [Larger-vector tiling contract](evaluation/tiling-contract.md) and [120-case results](evaluation/tiling-results/README.md)
-
-- [Output-count scaling contract and results](evaluation/scaling-results/README.md)
-
-- [October 19 cache contract](evaluation/comparison-contract.md) and [measured cache study](evaluation/cache-results/README.md)
-
-- [CPU-driven PIM system regression](verification/pim-system-regression.md)
-- [Evaluation methodology](evaluation/evaluation-methodology.md) and [PIM event accounting](evaluation/pim-event-accounting.md)
-- [NeuroSim/PiMulator scope record](evaluation/neurosim-pimulator-scope-2026-09-24.md)
-
-- [Matched memory latency meeting results](evaluation/latency-results/README.md), [timing policy](evaluation/memory-response-policy.md), and [D8 → SRAM CIM → RRAM memo](evaluation/d8-sram-cim-design-memo.md)
-- [Executable 16×32 comparison contract](evaluation/comparison-contract.md)
-
-## Programs and executable evidence
-
-- [Looped CPU matrix-vector benchmark](../programs/matvec_1x16_16x32.md), [16×32 CPU diagnostics](../programs/matvec_1x16_16x32_cpu_diagnostics.md), [CPU-driven PIM offload benchmark](../programs/pim_offload_1x16_16x32.md), and [PIM cold/warm timing benchmark](../programs/pim_cold_warm_1x16_16x32.md)
-- [Integration smoke](../programs/integration_smoke.md), [corner cases](../programs/integration_corner_cases.md), [scalar MUL](../programs/scalar_mul.md), and [dot product](../programs/dot_product_16.md)
-- [Testbenches](../tb/) and [verification script](../scripts/verify.sh)
+The [roadmap](roadmap.md) and [development log](devlog.md) record how the design evolved.

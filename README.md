@@ -1,42 +1,27 @@
 # OpenCoreX
 
-Simulation-focused multicycle RV32 subset CPU with scalar MUL and a blocking,
-single-lane digital matvec accelerator. Arithmetic is signed 32-bit with
-wraparound. One shared RAM port, one outstanding read, no CPU data cache.
-The accelerator's private vector buffer defaults to 16 words; benchmark
-configurations provision 128. This is a functional digital model, without
-physical energy/area characterization.
+OpenCoreX is a SystemVerilog research platform for comparing software execution with digital near-memory offload. A multicycle RV32-subset CPU runs the baseline and launches a single-lane INT32 matrix–vector accelerator through MMIO. Both share a single-port RAM with one outstanding read.
+
+[System architecture and CPU datapath](docs/architecture/README.md) · [MMIO and memory interface](docs/architecture/mmio-memory.md) · [Experiments and reproduction](docs/evaluation/README.md)
+
+## Selected results
+
+| RTL experiment | Measured result |
+|---|---|
+| 128×128 GEMM at 20-cycle read delay | CPU MAC fusion cuts tiled CPU cycles by 9.63%. Offload is 1.73× as fast as the fused CPU baseline. [Results](docs/evaluation/mac-results/README.md) |
+| Synthetic CIFAR-shaped convolution slices | Weight retention wins at a five-cycle read delay on all three measured slices. Its crossover against activation retention occurs between two and four cycles, depending on the slice. [Sweep](docs/evaluation/cifar-ram-latency-results/README.md) |
+| Full Conv2_1 on the 16 MiB RAM model | Activation retention leads at both measured endpoints. At five cycles it finishes 1,111,736 cycles ahead of weight retention. [Capacity study](docs/evaluation/cifar-ram-latency-results/README.md#storage-ledger-and-capacity) |
+
+The results are from RTL simulation. Cycle comparisons include software packing and output handling where the workload requires them. The energy sensitivity study uses assumed coefficients.
 
 ## Run
 
-Linux/WSL requires Verilator 5.x, GNU Make, Bash, Python 3 and a C++ compiler.
+Use Linux or WSL with Verilator 5.x, GNU Make, Bash, Python 3, and a C++ compiler. Individual study pages list additional Python dependencies.
 
-```bash
-make verify            # Historical RTL, protocol, reset and benchmark regression
-make gemm-study        # Square matrix multiplication: 16 and 32
-make gemm-large-study  # Square matrix multiplication: 64 and 128
+```sh
+make verify
+make cold-warm
+make help
 ```
 
-Both GEMM studies have a matching `-check` target to replay recorded evidence.
-GEMM uses streaming CPU, four-output CPU tiling and one cold offload per A row.
-Complete-job timing includes setup, launches, waits, status and completion.
-Operands start in RAM: A/C row-major, B column-major. Host placement and
-layout conversion are excluded consistently.
-
-## Results
-
-- [16×16 / 32×32 GEMM](docs/evaluation/gemm-results/README.md)
-- [64×64 / 128×128 GEMM](docs/evaluation/gemm-large-results/README.md)
-- [Larger-vector tiling](docs/evaluation/tiling-results/README.md)
-- [Output-count scaling](docs/evaluation/scaling-results/README.md)
-- [Instruction-cache study](docs/evaluation/cache-results/README.md)
-
-## Code and documentation
-
-`rtl/` contains CPU, memory, accelerator and system modules. `tb/` contains
-self-checking tests. `programs/` stores generated images; `scripts/` generates,
-runs and checks them. Production defaults and historical images remain separate
-from benchmark overrides.
-
-See the [documentation index](docs/README.md), [architecture](docs/architecture/architecture-v0.1.md),
-[accelerator contract](docs/architecture/pim-architecture-v0.1.md) and [roadmap](docs/roadmap.md).
+RTL lives in [rtl](rtl/), self-checking benches in [tb](tb/), program images in [programs](programs/), and experiment tooling in [scripts](scripts/). See the [documentation index](docs/) for verification and development history.

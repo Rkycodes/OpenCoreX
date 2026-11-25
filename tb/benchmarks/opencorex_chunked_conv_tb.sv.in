@@ -1,0 +1,377 @@
+// Chunked convolution monitor, adapted from opencorex_cifar_conv1_tb.sv.
+module opencorex_chunked_conv_tb #(parameter bit CACHE_ENABLE = 1);
+    import pim_pkg::*;
+
+    localparam int RAM_WORDS = @RAM_WORDS@, SIDE = @SIDE@, CHANNELS = @CHANNELS@, FILTERS = @FILTERS@;
+    localparam int TERMS = @TERMS@, POSITIONS = @POSITIONS@, TILE = @TILE@, CHUNKS = @CHUNKS@;
+    localparam int OUTPUTS = POSITIONS * FILTERS, PATCH_WORDS = POSITIONS * TERMS;
+    localparam int INPUT = @INPUT@, PATCH = @PATCH@, WEIGHTS = @WEIGHTS@, PARTIAL = @PARTIAL@;
+    localparam int OUTPUT = @OUTPUT@, FILTER_OUTPUT = @FILTER_OUTPUT@;
+    localparam int BIAS = @BIAS@, POST = @POST@, POOL = @POOL@, CONST_WORDS = @CONST_WORDS@;
+    localparam int POST_WORDS = @POST_WORDS@, POOL_WORDS = @POOL_WORDS@;
+    localparam int LAST_PHASE = POST_WORDS == 0 ? 4 : 6;
+    localparam int SIGNATURE = 'h440, DONE = 'h444, PHASE = 'h448;
+    localparam int MMIO = 'h40000000;
+    localparam int ACTIVATIONS = 2, RELOAD = 3, RETAIN = 4;
+
+    logic clk = 0;
+    always #5 clk <= ~clk;
+    logic reset, error, memory_read_enable, memory_write_enable;
+    logic [31:0] memory_address, memory_write_data, memory_read_data;
+    int read_delay = 1, mode = ACTIVATIONS;
+    bit weights_first;
+
+    cache_study_subsystem #(.ICACHE_ENABLE(CACHE_ENABLE), .RAM_WORDS(RAM_WORDS),
+        .BUFFER_WORDS(128), .MAX_OUTPUTS(128), .MAC_LANES(1)) dut (
+        .clk, .reset, .read_delay, .fetch_delay(read_delay), .error,
+        .memory_read_enable, .memory_write_enable, .memory_address,
+        .memory_write_data, .memory_read_data
+    );
+    memory #(.WORDS(RAM_WORDS)) test_memory (
+        .clk, .read_enable(memory_read_enable), .write_enable(memory_write_enable),
+        .address(memory_address), .write_data(memory_write_data), .read_data(memory_read_data)
+    );
+
+    logic [31:0] raw[OUTPUTS], patches[PATCH_WORDS], partials[CHUNKS * OUTPUTS];
+    logic [31:0] post_expected[POST_WORDS > 0 ? POST_WORDS : 1];
+    logic [31:0] pool_expected[POOL_WORDS > 0 ? POOL_WORDS : 1];
+    int phase = 0, phase_cycles[7], cycle;
+    int commands, cold_commands, status_reads, status_responses, mmio_writes;
+    int start_edge, command_end, command_cycles, pim_busy_cycles;
+    int cpu_wait_cycles, cpu_blocked_cycles, response_edge;
+    bit read_pending, read_from_pim;
+    logic [31:0] expected_response;
+    int input_reads, activation_reads, weight_reads, fetch_reads, control_reads;
+    int patch_writes, raw_writes, gather_reads, gather_writes, ram_reads, ram_writes;
+    int buffer_loads, buffer_reads, buffer_begins, pim_macs;
+    int psum_reads, psum_writes;
+    int post_reads, post_writes, pool_writes;
+    int vector_base, matrix_base, vector_length, matrix_read_index, vector_read_index;
+    bit cold;
+
+    function automatic bit in_region(input logic [31:0] address, input int base, words);
+        return address >= base && address < base + 4 * words;
+    endfunction
+
+    function automatic int canonical(input int index);
+        return weights_first ? (index % POSITIONS) * FILTERS + index / POSITIONS : index;
+    endfunction
+
+    task automatic check_launch;
+        pim_descriptor_t descriptor;
+        int count, command_word, chunk, inner, chunk_start, output_index;
+        descriptor = dut.accelerator_inst.cmd_descriptor;
+        count = weights_first ? TILE : FILTERS;
+        chunk = commands / (OUTPUTS / count);
+        inner = commands % (OUTPUTS / count);
+        chunk_start = 128 * chunk;
+        vector_length = TERMS - chunk_start < 128 ? TERMS - chunk_start : 128;
+        if (weights_first) begin
+            vector_base = WEIGHTS + 4 * (TERMS * (inner / (POSITIONS / TILE)) + chunk_start);
+            matrix_base = PATCH + 4 * (TERMS * TILE * (inner % (POSITIONS / TILE)) + chunk_start);
+        end else begin
+            vector_base = PATCH + 4 * (TERMS * inner + chunk_start);
+            matrix_base = WEIGHTS + 4 * chunk_start;
+        end
+        output_index = chunk * OUTPUTS + inner * count;
+        cold = mode != RETAIN || inner % (POSITIONS / TILE) == 0;
+        command_word = cold ? 1 : 3;
+        if (chunk >= CHUNKS || dut.mmio_req_wdata != command_word || psum_writes != output_index ||
+            status_responses != commands || dut.pim_busy ||
+            descriptor.vector_base != vector_base || descriptor.matrix_base != matrix_base ||
+            descriptor.output_base != PARTIAL + 4 * output_index || descriptor.output_count != count ||
+            descriptor.vector_length != vector_length || descriptor.matrix_column_stride != 4 * TERMS)
+            $fatal(1, "descriptor mismatch at command %0d", commands);
+        if (!cold && (!dut.accelerator_inst.buffer_vector_full ||
+             dut.accelerator_inst.resident_vector_base != vector_base ||
+             dut.accelerator_inst.resident_vector_length != vector_length))
+            $fatal(1, "warm command requires matching resident weights");
+        cold_commands += int'(cold);
+        matrix_read_index = 0;
+        vector_read_index = 0;
+        start_edge = cycle;
+        command_end = output_index + count;
+        commands++;
+    endtask
+
+    task automatic check_read;
+        bit pim_access, is_activation;
+        int expected_address, expected_index;
+        pim_access = dut.pim_req_valid && dut.pim_req_ready && !dut.pim_req_write;
+        if (read_pending || dut.mem_rsp_valid)
+            $fatal(1, "overlapping read");
+        read_pending = 1;
+        read_from_pim = pim_access;
+        response_edge = cycle + read_delay;
+        expected_response = test_memory.mem[memory_address >> 2];
+        ram_reads++;
+        if (in_region(memory_address, 0, 4) || in_region(memory_address, 'h1000, 4096)) begin
+            if (pim_access) $fatal(1, "PIM read executable memory");
+            fetch_reads++;
+        end else if (in_region(memory_address, INPUT, CHANNELS * SIDE * SIDE)) begin
+            if (phase != 1 || pim_access) $fatal(1, "input read phase or owner");
+            input_reads++;
+        end else if (in_region(memory_address, PATCH, PATCH_WORDS) ||
+                     in_region(memory_address, WEIGHTS, FILTERS * TERMS)) begin
+            if (phase != 2 || !pim_access || !dut.pim_busy || commands == 0)
+                $fatal(1, "operand read outside PIM command");
+            is_activation = in_region(memory_address, PATCH, PATCH_WORDS);
+            if (is_activation != weights_first) begin
+                if (!cold || vector_read_index >= vector_length)
+                    $fatal(1, "unexpected retained vector read");
+                expected_address = vector_base + 4 * vector_read_index;
+                vector_read_index++;
+            end else begin
+                if (matrix_read_index >= vector_length * (weights_first ? TILE : FILTERS))
+                    $fatal(1, "extra matrix read");
+                expected_address = matrix_base +
+                    4 * ((matrix_read_index / vector_length) * TERMS + matrix_read_index % vector_length);
+                matrix_read_index++;
+            end
+            if (memory_address != expected_address)
+                $fatal(1, "operand read address %h expected %h", memory_address, expected_address);
+            activation_reads += int'(is_activation);
+            weight_reads += int'(!is_activation);
+        end else if (in_region(memory_address, PARTIAL, CHUNKS * OUTPUTS)) begin
+            expected_index = psum_reads % CHUNKS * OUTPUTS + psum_reads / CHUNKS;
+            if (phase != 3 || pim_access || psum_reads >= CHUNKS * OUTPUTS ||
+                memory_address != PARTIAL + 4 * expected_index ||
+                expected_response !== partials[(psum_reads % CHUNKS) * OUTPUTS + canonical(psum_reads / CHUNKS)])
+                $fatal(1, "partial read mismatch at %0d", psum_reads);
+            psum_reads++;
+        end else if (weights_first && in_region(memory_address, FILTER_OUTPUT, OUTPUTS)) begin
+            expected_index = (gather_reads % FILTERS) * POSITIONS + gather_reads / FILTERS;
+            if (phase != 4 || pim_access || gather_reads >= OUTPUTS ||
+                memory_address != FILTER_OUTPUT + 4 * expected_index ||
+                expected_response !== raw[gather_reads])
+                $fatal(1, "gather source mismatch at %0d", gather_reads);
+            gather_reads++;
+        end else if (POST_WORDS > 0 && !pim_access &&
+                     ((phase == 4 && (in_region(memory_address, OUTPUT, OUTPUTS) ||
+                                      in_region(memory_address, BIAS, FILTERS))) ||
+                      (phase == 5 && in_region(memory_address, POST, POST_WORDS)))) begin
+            post_reads++;
+        end else if (!pim_access && (in_region(memory_address, 'h500, CONST_WORDS) ||
+                                     (memory_address == SIGNATURE && phase == LAST_PHASE))) begin
+            control_reads++;
+        end else $fatal(1, "unclassified read at %h", memory_address);
+    endtask
+
+    task automatic check_write(output bit finished);
+        bit pim_access;
+        int base, expected_index;
+        finished = 0;
+        pim_access = dut.pim_req_valid && dut.pim_req_ready && dut.pim_req_write;
+        base = weights_first ? FILTER_OUTPUT : OUTPUT;
+        ram_writes++;
+        if (read_pending || dut.mem_rsp_valid) $fatal(1, "write during outstanding read");
+        if (in_region(memory_address, PATCH, PATCH_WORDS)) begin
+            if (phase != 1 || pim_access || memory_address != PATCH + 4 * patch_writes ||
+                memory_write_data !== patches[patch_writes])
+                $fatal(1, "packed value mismatch at %0d", patch_writes);
+            patch_writes++;
+        end else if (in_region(memory_address, PARTIAL, CHUNKS * OUTPUTS)) begin
+            expected_index = psum_writes / OUTPUTS * OUTPUTS + canonical(psum_writes % OUTPUTS);
+            if (phase != 2 || !pim_access || psum_writes >= command_end ||
+                expected_index >= CHUNKS * OUTPUTS ||
+                memory_address != PARTIAL + 4 * psum_writes ||
+                memory_write_data !== partials[expected_index])
+                $fatal(1, "partial store mismatch at %0d, got %h expected %h", psum_writes,
+                       memory_write_data, partials[expected_index]);
+            psum_writes++;
+            if (psum_writes == command_end) begin
+                if (vector_read_index != (cold ? vector_length : 0) ||
+                    matrix_read_index != vector_length * (weights_first ? TILE : FILTERS))
+                    $fatal(1, "command operand count at %0d", commands - 1);
+                command_cycles += cycle - start_edge;
+                $display("COMMAND,%0d,%0d,%0d,%0d", commands - 1, start_edge, cycle, cycle - start_edge);
+            end
+        end else if (phase == 3 && in_region(memory_address, base, OUTPUTS)) begin
+            if (pim_access || memory_address != base + 4 * raw_writes ||
+                memory_write_data !== raw[canonical(raw_writes)])
+                $fatal(1, "CPU reduction mismatch at %0d", raw_writes);
+            raw_writes++;
+        end else if (weights_first && phase == 4 && in_region(memory_address, OUTPUT, OUTPUTS)) begin
+            if (pim_access || memory_address != OUTPUT + 4 * gather_writes ||
+                memory_write_data !== raw[gather_writes])
+                $fatal(1, "canonical output mismatch at %0d", gather_writes);
+            gather_writes++;
+        end else if (POST_WORDS > 0 && phase == 4 && in_region(memory_address, POST, POST_WORDS)) begin
+            if (pim_access || post_writes >= POST_WORDS || memory_address != POST + 4 * post_writes ||
+                memory_write_data !== post_expected[post_writes])
+                $fatal(1, "bias/ReLU mismatch at %0d, got %h", post_writes, memory_write_data);
+            post_writes++;
+        end else if (POOL_WORDS > 0 && phase == 5 && in_region(memory_address, POOL, POOL_WORDS)) begin
+            if (pim_access || pool_writes >= POOL_WORDS || memory_address != POOL + 4 * pool_writes ||
+                memory_write_data !== pool_expected[pool_writes])
+                $fatal(1, "pool mismatch at %0d, got %h", pool_writes, memory_write_data);
+            pool_writes++;
+        end else if (memory_address == PHASE) begin
+            if (pim_access || phase >= LAST_PHASE || memory_write_data != phase + 1)
+                $fatal(1, "invalid phase transition");
+            phase++;
+        end else if (memory_address == DONE) begin
+            if (pim_access || phase != LAST_PHASE || memory_write_data !== 32'h524b5943 || dut.pim_busy)
+                $fatal(1, "invalid completion");
+            finished = 1;
+        end else $fatal(1, "unclassified write at %h", memory_address);
+    endtask
+
+    task automatic metric(input string name, input int value);
+        $display("METRIC,%s,%0d", name, value);
+    endtask
+
+    initial begin : benchmark
+        string image, raw_file, patch_file, partial_file;
+        string post_file, pool_file, result_file;
+        int result_fd;
+        bit finished;
+        if (!$value$plusargs("MODE=%d", mode) || mode < ACTIVATIONS || mode > RETAIN ||
+            !$value$plusargs("DELAY=%d", read_delay) || read_delay < 1 || read_delay > 20 ||
+            !$value$plusargs("IMAGE=%s", image) || !$value$plusargs("RAW=%s", raw_file) ||
+            !$value$plusargs("PATCHES=%s", patch_file) ||
+            !$value$plusargs("PARTIALS=%s", partial_file))
+            $fatal(1, "missing or invalid benchmark arguments");
+        weights_first = mode == RELOAD || mode == RETAIN;
+        reset = 1;
+        #1;
+        $readmemh(image, test_memory.mem);
+        $readmemh(raw_file, raw);
+        $readmemh(patch_file, patches);
+        $readmemh(partial_file, partials);
+        if (POST_WORDS > 0) begin
+            if (mode != ACTIVATIONS || !$value$plusargs("POST_EXPECTED=%s", post_file) ||
+                !$value$plusargs("RESULT=%s", result_file))
+                $fatal(1, "missing or invalid inference arguments");
+            $readmemh(post_file, post_expected);
+            if (POOL_WORDS > 0) begin
+                if (!$value$plusargs("POOL_EXPECTED=%s", pool_file)) $fatal(1, "missing pool oracle");
+                $readmemh(pool_file, pool_expected);
+            end
+        end
+        repeat (2) @(posedge clk);
+        @(negedge clk);
+        reset = 0;
+        for (cycle = 0; cycle < @MAX_CYCLES@; cycle++) begin
+            @(posedge clk);
+            phase_cycles[phase]++;
+            if (error || dut.accelerator_inst.ctrl_error_set || dut.accelerator_inst.mmio.status_error)
+                $fatal(1, "CPU or PIM error");
+            if (dut.pim_busy) begin
+                pim_busy_cycles++;
+                if (dut.cpu_req_ready || dut.ram_req_valid || dut.mmio_req_valid)
+                    $fatal(1, "CPU access accepted while PIM busy");
+            end
+            if (dut.cpu_req_valid && !dut.cpu_req_ready) begin
+                cpu_wait_cycles++;
+                if (dut.pim_busy) cpu_blocked_cycles++;
+            end else if (!dut.cpu_rsp_valid &&
+                         (dut.core_inst.controller_inst.current_state == 1 ||
+                          dut.core_inst.controller_inst.current_state == 8)) begin
+                // FETCH_CAPTURE or MEM_READ_CAPTURE waiting for the response.
+                cpu_wait_cycles++;
+            end
+            if (dut.mmio_req_valid && dut.mmio_req_ready) begin
+                if (phase != 2 || memory_read_enable || memory_write_enable)
+                    $fatal(1, "MMIO phase or isolation");
+                if (dut.mmio_req_write) begin
+                    mmio_writes++;
+                    if (dut.mmio_req_addr == MMIO + 32'(PIM_REG_COMMAND)) check_launch();
+                end else begin
+                    if (dut.mmio_req_addr != MMIO + 32'(PIM_REG_STATUS) || dut.pim_busy)
+                        $fatal(1, "unexpected status read");
+                    status_reads++;
+                end
+            end
+            if (dut.mmio_rsp_valid) begin
+                if (status_responses >= status_reads || dut.mmio_rsp_rdata != 10)
+                    $fatal(1, "status must be DONE and VECTOR_FULL");
+                status_responses++;
+            end
+            if (memory_read_enable && memory_write_enable) $fatal(1, "RAM port collision");
+            if ((memory_read_enable || memory_write_enable) &&
+                (memory_address >= 4 * RAM_WORDS || memory_address[1:0] != 0))
+                $fatal(1, "RAM address out of range or unaligned");
+            if (memory_read_enable) check_read();
+            if (memory_write_enable) check_write(finished);
+            if (dut.mem_rsp_valid) begin
+                if (!read_pending || cycle != response_edge ||
+                    dut.mem_rsp_rdata !== expected_response ||
+                    dut.pim_rsp_valid != read_from_pim || dut.cache_rsp_valid == read_from_pim)
+                    $fatal(1, "read timing, data or owner");
+                read_pending = 0;
+            end else if (read_pending && cycle >= response_edge) $fatal(1, "missing read response");
+
+            buffer_begins += int'(dut.accelerator_inst.buffer_begin_vector);
+            buffer_loads += int'(dut.accelerator_inst.buffer_write_enable);
+            buffer_reads += int'(dut.accelerator_inst.buffer_read_enable);
+            pim_macs += int'(dut.accelerator_inst.mac_start);
+            if (finished) break;
+        end
+        if (!finished || read_pending || raw_writes != OUTPUTS || patch_writes != PATCH_WORDS ||
+            status_reads != commands || status_responses != commands || pim_busy_cycles != command_cycles ||
+            buffer_begins != cold_commands || buffer_loads + buffer_reads != pim_macs ||
+            pim_macs != OUTPUTS * TERMS ||
+            psum_reads != OUTPUTS * CHUNKS || psum_writes != OUTPUTS * CHUNKS ||
+            (weights_first && (gather_reads != OUTPUTS || gather_writes != OUTPUTS)) ||
+            post_writes != POST_WORDS || pool_writes != POOL_WORDS ||
+            post_reads != 2 * POST_WORDS + 4 * POOL_WORDS)
+            $fatal(1, "incomplete execution or counter mismatch");
+        @(negedge clk);
+        foreach (raw[i])
+            if (test_memory.mem[OUTPUT / 4 + i] !== raw[i])
+                $fatal(1, "final stored tensor mismatch at %0d", i);
+
+        metric("applied_delay", read_delay);
+        metric("cycles", cycle + 1);
+        metric("setup_cycles", phase_cycles[0]);
+        metric("packing_cycles", phase_cycles[1]);
+        metric("compute_cycles", phase_cycles[2]);
+        metric("combine_cycles", phase_cycles[3]);
+        metric("output_phase_cycles", phase_cycles[LAST_PHASE]);
+        if (POST_WORDS > 0) begin
+            metric("bias_relu_cycles", phase_cycles[4]);
+            metric("pool_cycles", phase_cycles[5]);
+            metric("post_reads", post_reads);
+            metric("post_writes", post_writes + pool_writes);
+            result_fd = $fopen(result_file, "w");
+            if (result_fd == 0) $fatal(1, "could not open RTL result");
+            if (POOL_WORDS > 0) begin
+                for (int i = 0; i < POOL_WORDS; i++)
+                    $fdisplay(result_fd, "%08h", test_memory.mem[POOL / 4 + i]);
+            end else begin
+                for (int i = 0; i < POST_WORDS; i++)
+                    $fdisplay(result_fd, "%08h", test_memory.mem[POST / 4 + i]);
+            end
+            $fclose(result_fd);
+        end
+        metric("cpu_wait_cycles", cpu_wait_cycles);
+        metric("cpu_blocked_cycles", cpu_blocked_cycles);
+        metric("cpu_non_wait_cycles", cycle + 1 - cpu_wait_cycles);
+        metric("pim_cycles", pim_busy_cycles);
+        metric("psum_reads", psum_reads);
+        metric("psum_writes", psum_writes);
+        metric("final_output_writes", weights_first ? gather_writes : raw_writes);
+        metric("pim_macs", pim_macs);
+        metric("commands", commands);
+        metric("cold_commands", cold_commands);
+        metric("mmio_reads", status_reads);
+        metric("mmio_writes", mmio_writes);
+        metric("input_reads", input_reads);
+        metric("activation_reads", activation_reads);
+        metric("weight_reads", weight_reads);
+        metric("fetch_reads", fetch_reads);
+        metric("control_reads", control_reads);
+        metric("gather_reads", gather_reads);
+        metric("gather_writes", gather_writes);
+        metric("patch_writes", patch_writes);
+        metric("output_writes", raw_writes);
+        metric("ram_reads", ram_reads);
+        metric("ram_writes", ram_writes);
+        metric("buffer_loads", buffer_loads);
+        metric("buffer_reuses", buffer_reads);
+        metric("outputs_checked", OUTPUTS);
+        $display("PASS: opencorex_chunked_conv_tb");
+        $finish;
+    end
+endmodule

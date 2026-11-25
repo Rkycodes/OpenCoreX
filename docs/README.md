@@ -14,6 +14,8 @@ The v0.1 architecture and PIM interface documents retain their dated design deci
 
 ## Verification and evaluation
 
+- [Full CIFAR VGG-16 Conv1_1 measurements](evaluation/cifar-conv1-results/programs.csv)
+- [CIFAR VGG-16 chunked convolution retention measurements](evaluation/cifar-chunked-results/README.md)
 - [VGG conv1_1 mapping and comparison contract](evaluation/vgg-conv1_1-mapping.md)
 - [Measured conv1_1 CPU/GEMV results and graphs](evaluation/conv1-results/README.md)
 - [Conv1_1 weight-reuse mapping](evaluation/vgg-conv1_1-weight-reuse.md) and [D/E comparison](evaluation/conv1-weight-reuse-results/README.md)

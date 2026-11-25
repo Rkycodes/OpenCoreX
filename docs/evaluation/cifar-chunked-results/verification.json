@@ -1,0 +1,54 @@
+{
+  "measurement_revision": "2ec181ad64acd30bdcb888297aab89f7f84ea594",
+  "scratch_revision": "11e9d4705cfcabe2e4af789909d45640c0c82109",
+  "chunked_checkout_replay": {
+    "status": "passed",
+    "configurations": 18,
+    "output_words_checked": 95232,
+    "matches_scratch_program_csvs_byte_for_byte": true,
+    "manifests": [
+      "conv1_2/manifest-L1.json",
+      "conv1_2/manifest-L5.json",
+      "conv2_1/manifest-L1.json",
+      "conv2_1/manifest-L5.json",
+      "conv2_2/manifest-L1.json",
+      "conv2_2/manifest-L5.json"
+    ],
+    "combined_programs_sha256": "b43a1989eeaeaf138a506f1cc51adeb85add4213de3a9aa0c4a0e8ea0f70c7bd"
+  },
+  "scratch_verification": {
+    "make_verify": {
+      "status": "passed",
+      "positive_testbenches": 36,
+      "latency_configurations": 50,
+      "cache_configurations": 20,
+      "expected_failures": 19,
+      "log_sha256": "ef921441efdfbba1e291f694f5683444c494d543e0a9ba4cf7f1c59975be890e"
+    },
+    "conv1_1": {
+      "configurations": 8,
+      "output_words_checked": 524288,
+      "program_csv_and_timing_trace_match_saved": true
+    },
+    "historical_small_convolution": {
+      "original_configurations": 24,
+      "weight_reuse_configurations": 6,
+      "programs_states_and_commands_match_saved": true
+    },
+    "chunked_fault_checks": [
+      {
+        "fault": "bad-partial",
+        "rejected_with": "partial store mismatch at 0"
+      },
+      {
+        "fault": "wrong-warm-policy",
+        "rejected_with": "descriptor mismatch at command 1"
+      }
+    ],
+    "historical_gemm": {
+      "receipt": "../cifar-conv1-results/verification.json",
+      "counters_match_saved": true,
+      "status": "historical source-hash mismatches"
+    }
+  }
+}

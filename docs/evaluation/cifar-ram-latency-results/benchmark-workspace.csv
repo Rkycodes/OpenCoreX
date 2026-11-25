@@ -1,0 +1,5 @@
+workload,prefix_bytes,input_bytes,patch_bytes,weights_bytes,partial_bytes,filter_output_bytes,output_bytes,total_address_space_bytes,fits_1_mib,fits_16_mib
+Conv2_1,24576,65536,589824,73728,163840,32768,32768,983040,True,True
+Conv1_2,24576,262144,294912,73728,81920,16384,16384,770048,True,True
+Conv2_2,24576,131072,516096,147456,129024,14336,14336,976896,True,True
+Conv2_1-full,24576,65536,589824,294912,655360,131072,131072,1892352,False,True

@@ -3,9 +3,10 @@
 The [experiment contract](cifar-ram-latency-contract.md) defines the workload,
 layout, oracle and cycle boundary. The chunked runner preserves the committed
 [L=1/L=5 measurements](cifar-chunked-results/programs.csv) and checks every
-historical CSV field on replay. Every layer also checks the generated policy
-images and the packed, partial and final oracles against the committed
-SHA-256 digests.
+historical CSV field on replay. The original slices also check the generated
+policy images and the packed, partial and final oracles against the committed
+SHA-256 digests. See the [follow-up audit and capacity study](cifar-ram-latency-results/README.md)
+for the full 1 MiB sweep, reproducibility instructions, and the 16 MiB extension.
 
 ## CSV and run records
 
@@ -36,9 +37,10 @@ Each layer has a `manifest.json` with the Git revision and tracked changes,
 tool versions, exact build arguments, parameters, RAM ranges and hashes.
 Each `<policy>-L<delay>.json` has the exact simulator arguments, timeout, result,
 log hash and a hash of that layer's manifest. `applied_delay` comes from the RTL
-after it completes its timed response and output checks. The RTL limits runs
-to 200 million measured cycles and the runner defaults to 300 wall-clock
-seconds per simulation.
+after it completes its timed response and output checks. The RTL limits the
+original slices to 200 million measured cycles, and the runner defaults to
+300 wall-clock seconds per simulation. The full Conv2_1 extension permits
+400 million measured cycles.
 
 ## November 19 replay and pilot staging
 

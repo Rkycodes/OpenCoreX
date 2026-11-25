@@ -29,9 +29,8 @@ EXTRA_FIELDS = ("applied_delay", "warm_commands", "mac_starts_per_pim_busy_cycle
 TEMPLATE = ROOT / f"tb/benchmarks/{TOP}.sv.in"
 POLICIES = friday.POLICIES[2:]
 SEED = 0xc1fa
-RAM_WORDS = 262144
+RAM_MIB = (1, 16)
 VECTOR_WORDS = 128
-FILTERS = 32
 
 
 @dataclass(frozen=True)
@@ -42,6 +41,8 @@ class Workload:
     logical_filters: int
     rows: int
     tile: int
+    filters: int = 32
+    max_cycles: int = 200_000_000
 
     @property
     def positions(self):
@@ -53,15 +54,17 @@ class Workload:
 
     @property
     def outputs(self):
-        return self.positions * FILTERS
+        return self.positions * self.filters
 
     @property
     def lengths(self):
         return [min(VECTOR_WORDS, self.terms - k)
                 for k in range(0, self.terms, VECTOR_WORDS)]
 
-    def constants(self):
-        return dict(SIDE=self.side, CHANNELS=self.channels, FILTERS=FILTERS,
+    def constants(self, ram_words):
+        return dict(SIDE=self.side, CHANNELS=self.channels, FILTERS=self.filters,
+                    RAM_WORDS=ram_words, MAX_CYCLES=self.max_cycles,
+                    CONST_WORDS=64, BIAS=0, POST=0, POOL=0, POST_WORDS=0, POOL_WORDS=0,
                     TERMS=self.terms, POSITIONS=self.positions, TILE=self.tile,
                     CHUNKS=len(self.lengths), **{k.upper(): v[0] for k, v in self.regions().items()})
 
@@ -71,16 +74,15 @@ class Workload:
         for name, words in [
             ("input", self.side**2 * self.channels),
             ("patch", self.positions * self.terms),
-            ("weights", FILTERS * self.terms),
+            ("weights", self.filters * self.terms),
             ("partial", self.outputs * len(self.lengths)),
             ("filter_output", self.outputs),
             ("output", self.outputs),
         ]:
             regions[name] = (cursor, words)
             cursor += words * 4
-        assert cursor <= 4 * RAM_WORDS, hex(cursor)
-        assert self.positions % self.tile == 0 and self.positions > self.tile
-        assert 0 < self.tile <= VECTOR_WORDS and FILTERS <= self.logical_filters
+        assert self.positions % self.tile == 0
+        assert 0 < self.tile <= VECTOR_WORDS and 0 < self.filters <= self.logical_filters
         return regions
 
 
@@ -88,6 +90,8 @@ LAYERS = {
     "conv2_1": Workload("Conv2_1", 16, 64, 128, 16, 128),
     "conv1_2": Workload("Conv1_2", 32, 64, 64, 4, 64),
     "conv2_2": Workload("Conv2_2", 16, 128, 128, 7, 56),
+    "conv2_1_full": Workload("Conv2_1-full", 16, 64, 128, 16, 128,
+                             filters=128, max_cycles=400_000_000),
 }
 
 
@@ -96,12 +100,12 @@ def make_data(work):
     image = [[[rv.to_s32(rng.getrandbits(32)) for _ in range(work.side)]
               for _ in range(work.side)] for _ in range(work.channels)]
     weights = [[[[rv.to_s32(rng.getrandbits(32)) for _ in range(3)]
-                 for _ in range(3)] for _ in range(work.channels)] for _ in range(FILTERS)]
+                 for _ in range(3)] for _ in range(work.channels)] for _ in range(work.filters)]
     # At the top-left position these products wrap twice across different chunks.
     image[0][0][0] = image[-1][0][0] = -2**31
     weights[0] = [[[0] * 3 for _ in range(3)] for _ in range(work.channels)]
     weights[0][0][1][1] = weights[0][-1][1][1] = -1
-    raw, _, _ = convolve(image, weights, [0] * FILTERS)
+    raw, _, _ = convolve(image, weights, [0] * work.filters)
     raw = raw[:work.outputs]
     raw_words = [word for channel in image for row in channel for word in row]
     weight_words = [word for f in weights for channel in f for row in channel for word in row]
@@ -117,7 +121,7 @@ def make_data(work):
         plane = []
         for p in range(work.positions):
             activations = patches[p * work.terms + start:p * work.terms + start + length]
-            for f in range(FILTERS):
+            for f in range(work.filters):
                 base = f * work.terms + start
                 plane.append(sum(a * w for a, w in zip(
                     activations, weight_words[base:base + length])) & MASK)
@@ -165,7 +169,7 @@ def compute(a, work, memory, weights_first, retain):
     a.load(1, 0x40000000)
     a.load(23, stride)
     a.emit(rv.sw(23, 1, 12), rv.addi(24, 0, 10),
-           rv.addi(2, 0, work.tile if weights_first else FILTERS), rv.sw(2, 1, 20))
+           rv.addi(2, 0, work.tile if weights_first else work.filters), rv.sw(2, 1, 20))
     if weights_first:
         a.load(22, stride * work.tile)
     else:
@@ -177,7 +181,7 @@ def compute(a, work, memory, weights_first, retain):
         vector, matrix = ("weights", "patch") if weights_first else ("patch", "weights")
         a.load(5, memory[vector][0] + start)
         a.load(19, memory[matrix][0] + start)
-        a.emit(rv.addi(20, 0, FILTERS if weights_first else work.positions))
+        a.emit(rv.addi(20, 0, work.filters if weights_first else work.positions))
         a.label(f"outer_{c}")
         a.emit(rv.addi(6, 19, 0))
         if weights_first:
@@ -189,7 +193,7 @@ def compute(a, work, memory, weights_first, retain):
                    rv.addi(7, 7, 4 * work.tile), rv.addi(21, 21, -1))
             a.branch(21, 0, f"tile_{c}")
         else:
-            a.emit(rv.addi(7, 7, 4 * FILTERS))
+            a.emit(rv.addi(7, 7, 4 * work.filters))
         a.emit(rv.add(5, 5, 23), rv.addi(20, 20, -1))
         a.branch(20, 0, f"outer_{c}")
 
@@ -208,12 +212,12 @@ def combine(a, work, memory, weights_first):
     a.branch(20, 0, "combine_output")
 
 
-def generate_images(directory, work):
+def generate_images(directory, work, ram_words):
     memory = work.regions()
     image, weights, patches, raw, partial, input_reads = make_data(work)
     for name, words in (("patches", patches), ("raw", raw), ("partials", partial)):
         (directory / f"{name}.hex").write_text("".join(f"{word:08x}\n" for word in words))
-    friday.POSITIONS, friday.FILTERS = work.positions, FILTERS
+    friday.POSITIONS, friday.FILTERS = work.positions, work.filters
     friday.FILTER_OUTPUT, friday.OUTPUT = memory["filter_output"][0], memory["output"][0]
     for policy in POLICIES:
         weights_first = policy.startswith("weight-")
@@ -240,7 +244,7 @@ def generate_images(directory, work):
                 data = [0xa5a5a5a5 if name == "patch" else 0xdeadbeef] * words
             assert len(data) == words
             regions.append((base, data))
-        (directory / f"{policy}.hex").write_text(hex_text(regions))
+        (directory / f"{policy}.hex").write_text(hex_text(regions, ram_bytes=4 * ram_words))
     return input_reads
 
 
@@ -265,7 +269,7 @@ def summarize(output, work, policy, latency, input_reads):
     assert metrics["applied_delay"] == latency, "RTL delay differs from requested delay"
     weight_first = policy.startswith("weight-")
     cmds_per_chunk = (work.outputs // work.tile if weight_first else work.positions)
-    loads = (FILTERS if policy == "weight-retaining" else cmds_per_chunk) * work.terms
+    loads = (work.filters if policy == "weight-retaining" else cmds_per_chunk) * work.terms
     commands = cmds_per_chunk * len(work.lengths)
     macs = work.outputs * work.terms
     psums = work.outputs * len(work.lengths)
@@ -282,15 +286,18 @@ def summarize(output, work, policy, latency, input_reads):
     for key, value in expected.items():
         assert metrics[key] == value, (work.name, policy, latency, key, metrics[key], value)
     assert metrics["cycles"] == sum(metrics[key] for key in
-        ("setup_cycles", "packing_cycles", "compute_cycles", "combine_cycles", "output_phase_cycles"))
+        ("setup_cycles", "packing_cycles", "compute_cycles", "combine_cycles", "output_phase_cycles")
+    ) + metrics.get("bias_relu_cycles", 0) + metrics.get("pool_cycles", 0)
     assert metrics["cycles"] == metrics["cpu_wait_cycles"] + metrics["cpu_non_wait_cycles"]
     assert metrics["cpu_blocked_cycles"] <= min(metrics["cpu_wait_cycles"], metrics["pim_cycles"])
     assert 0 < macs <= metrics["pim_cycles"] <= metrics["compute_cycles"]
     assert last_end < metrics["cycles"]
     assert metrics["ram_reads"] == sum(metrics[key] for key in
         ("input_reads", "activation_reads", "weight_reads", "fetch_reads", "control_reads",
-         "gather_reads", "psum_reads"))
-    assert metrics["ram_writes"] == 5 + psums + work.outputs + gather + metrics["patch_writes"]
+         "gather_reads", "psum_reads")) + metrics.get("post_reads", 0)
+    assert metrics["ram_writes"] == (5 + psums + work.outputs + gather + metrics["patch_writes"]
+                                    + metrics.get("post_writes", 0)
+                                    + (2 if "post_writes" in metrics else 0))
     assert intervals == commands and command_cycles == metrics["pim_cycles"]
     return dict(workload=work.name, policy=policy, precision="INT32", ram_latency=latency,
                 **metrics, ram_bytes=4 * (metrics["ram_reads"] + metrics["ram_writes"]),
@@ -299,14 +306,15 @@ def summarize(output, work, policy, latency, input_reads):
                 correctness="PASS")
 
 
-def configuration(work):
+def configuration(work, ram_words):
     return dict(input_hwc=[work.side, work.side, work.channels],
                 logical_output_hwc=[work.side, work.side, work.logical_filters],
                 measured_rows=list(range(work.rows)), measured_columns=list(range(work.side)),
-                measured_filters=list(range(FILTERS)), terms=work.terms, chunk_lengths=work.lengths,
-                weight_position_tile=work.tile, activation_filter_tile=FILTERS,
+                measured_filters=list(range(work.filters)), terms=work.terms, chunk_lengths=work.lengths,
+                weight_position_tile=work.tile, activation_filter_tile=work.filters,
                 seed=hex(SEED), kernel=[3, 3], stride=1, zero_padding=1, bias=0, relu=False,
-                precision="INT32 modulo 2^32", ram_words=RAM_WORDS, ram_ports=1,
+                precision="INT32 modulo 2^32", ram_words=ram_words, ram_ports=1,
+                max_cycles=work.max_cycles,
                 max_outstanding_reads=1, buffer_words=VECTOR_WORDS, max_outputs=128,
                 mac_lanes=1, instruction_cache=True)
 
@@ -382,6 +390,8 @@ def main():
     parser.add_argument("--run-id", help="new directory name under the ignored CIFAR sweep runs area")
     parser.add_argument("--plan", action="store_true", help="print simulator argv without building")
     parser.add_argument("--timeout", type=int, default=300, help="wall-clock seconds per simulation")
+    parser.add_argument("--ram-mib", type=int, choices=RAM_MIB, default=1,
+                        help="modeled benchmark RAM capacity in MiB")
     parser.add_argument("--workers", type=int, choices=range(1, 4), default=3)
     args = parser.parse_args()
     if not __debug__:
@@ -396,9 +406,15 @@ def main():
     runs = BUILD / "runs"
     root = runs / (args.run_id or "auto")
     layers, delays = sorted(args.layer), sorted(args.delay)
+    ram_words = args.ram_mib * 1024 * 1024 // 4
+    for layer in layers:
+        regions = LAYERS[layer].regions()
+        required_bytes = max(base + 4 * words for base, words in regions.values())
+        if required_bytes > 4 * ram_words:
+            parser.error(f"{layer} needs {required_bytes:,} bytes, exceeding {args.ram_mib} MiB RAM")
     if args.plan:
         print(json.dumps([
-            dict(layer=layer, policy=policy, delay=delay,
+            dict(layer=layer, policy=policy, delay=delay, ram_words=ram_words,
                  command=simulator_command(root / layer, policy, delay))
             for layer in layers for delay in delays for policy in POLICIES
         ], indent=2))
@@ -450,12 +466,13 @@ def main():
             input_reads = 0
             setup_error = ""
             try:
-                input_reads = generate_images(directory, work)
-                check_images(layer, hashes(sorted(directory.glob("*.hex"))))
-                assert all((work.name, policy, delay) in references
-                           for policy in POLICIES for delay in (1, 5)), "missing endpoint reference"
+                input_reads = generate_images(directory, work, ram_words)
+                if layer != "conv2_1_full":
+                    check_images(layer, hashes(sorted(directory.glob("*.hex"))))
+                    assert all((work.name, policy, delay) in references
+                               for policy in POLICIES for delay in (1, 5)), "missing endpoint reference"
                 template = TEMPLATE.read_text()
-                for key, value in work.constants().items():
+                for key, value in work.constants(ram_words).items():
                     template = template.replace(f"@{key}@", str(value))
                 tb = directory / f"{TOP}.sv"
                 tb.write_text(template)
@@ -465,7 +482,7 @@ def main():
 
             manifest = directory / "manifest.json"
             write_json(manifest, dict(
-                **provenance, configuration=configuration(work), build_commands=commands,
+                **provenance, configuration=configuration(work, ram_words), build_commands=commands,
                 regions={name: dict(base=hex(base), words=words, end_exclusive=hex(base + 4 * words))
                          for name, (base, words) in work.regions().items()},
                 source_sha256=source_sha256,

@@ -1,0 +1,21 @@
+{
+  "revision": "8865fbb2f40670c063f090e8288ad7a2e447540f",
+  "tracked_changes": [],
+  "commands": {
+    "make lint": {
+      "result": "PASS",
+      "log": "obj_dir/verification/nov24-clean-regression/lint.log",
+      "sha256": "a4f1b49a78adf222020f50f04b4170fdb59900bae2d38bbb103b60b286d2f5b9"
+    },
+    "make cold-warm": {
+      "result": "PASS",
+      "log": "obj_dir/verification/nov24-clean-regression/cold-warm.log",
+      "sha256": "313ab4687f65907bdae0a040eff4c005639833067596da860e121ef79abd6d6c"
+    },
+    "make verify": {
+      "result": "PASS",
+      "log": "obj_dir/verification/nov24-clean-regression/verify.log",
+      "sha256": "e82d4fd11f7f3a3c5ef20e90cdfc8c5b48b52bf0d3208bb023978a9c97b9540a"
+    }
+  }
+}

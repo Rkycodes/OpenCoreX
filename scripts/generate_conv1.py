@@ -83,8 +83,9 @@ def mapped(patches, weights, biases):
 
 
 class Assembler:
-    def __init__(self):
+    def __init__(self, constant_words=64):
         self.code, self.labels, self.fixups, self.constants = [], {}, [], []
+        self.constant_words = constant_words
 
     def emit(self, *words):
         self.code.extend(words)
@@ -97,7 +98,7 @@ class Assembler:
         if value not in self.constants:
             self.constants.append(value)
         address = CONSTANTS + 4*self.constants.index(value)
-        assert address < CONSTANTS + 256
+        assert address < min(CONSTANTS + 4 * self.constant_words, 0x800)
         self.emit(rv.lw(register, 0, address))
 
     def branch(self, a, b, label, equal=False):
@@ -204,13 +205,13 @@ def program(mode):
     return a
 
 
-def hex_text(regions):
+def hex_text(regions, *, ram_bytes=1048576):
     previous_end = 0
     lines = []
     for address, values in sorted(regions):
         assert address % 4 == 0 and previous_end <= address
         previous_end = address + 4*len(values)
-        assert previous_end <= 1048576
+        assert previous_end <= ram_bytes, f"Image end {previous_end:#x} exceeds RAM size {ram_bytes:#x}"
         lines.append(f"@{address//4:08x}")
         lines.extend(f"{value & MASK:08x}" for value in values)
     return "\n".join(lines)+"\n"
